@@ -1,0 +1,11 @@
+/**
+ * @name First Theme
+ * @author griffdawg123
+ * @description Basic Theme
+ * @version 0.0.1
+ */
+
+:root {
+    --my-size: 13px;
+    --my-color: #000000;
+}

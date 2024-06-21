@@ -1,0 +1,8 @@
+import = ["~/.config/alacritty/keybindings.toml"]
+
+[window]
+    decorations = "None"
+    blur = true
+[font]
+    normal = { family = "0xProtoNerdFontMono", style = "Regular"}
+    size = 8

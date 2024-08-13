@@ -32,36 +32,44 @@ return {
       local cmp = require('cmp')
       local cmp_action = lsp_zero.cmp_action()
 
-      cmp.setup({
-        formatting = lsp_zero.cmp_format({details = true}),
-        mapping = cmp.mapping.preset.insert({
-          ['<C-Space>'] = cmp.mapping.complete(),
-          ['<C-u>'] = cmp.mapping.scroll_docs(-4),
-          ['<C-d>'] = cmp.mapping.scroll_docs(4),
-          ['<C-f>'] = cmp_action.luasnip_jump_forward(),
-          ['<C-b>'] = cmp_action.luasnip_jump_backward(),
-        }),
-        snippet = {
-          expand = function(args)
-            require('luasnip').lsp_expand(args.body)
-          end,
-        },
-      })
-    end
-  },
-  -- LSP
-  {
-    'neovim/nvim-lspconfig',
-    cmd = {'LspInfo', 'LspInstall', 'LspStart'},
-    event = {'BufReadPre', 'BufNewFile'},
-    dependencies = {
-      {'hrsh7th/cmp-nvim-lsp'},
-      {'williamboman/mason-lspconfig.nvim'},
+            cmp.setup({
+                formatting = lsp_zero.cmp_format({details = true}),
+                mapping = cmp.mapping.preset.insert({
+                    ['<C-Space>'] = cmp.mapping.complete(),
+                    ['<C-u>'] = cmp.mapping.scroll_docs(-4),
+                    ['<C-d>'] = cmp.mapping.scroll_docs(4),
+                    ['<C-f>'] = cmp_action.luasnip_jump_forward(),
+                    ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+                    ['<CR>'] = cmp.mapping.confirm({select = true}),
+                }),
+                snippet = {
+                    expand = function(args)
+                        require('luasnip').lsp_expand(args.body)
+                    end,
+                },
+                sources = cmp.config.sources({
+                    { name = 'nvim_lsp' },
+                    { name = 'luasnip' },
+                },
+                    {
+                        { name = 'buffer' },
+                    })
+            })
+        end
     },
-    config = function()
-      -- This is where all the LSP shenanigans will live
-      local lsp_zero = require('lsp-zero')
-      lsp_zero.extend_lspconfig()
+    -- LSP
+    {
+        'neovim/nvim-lspconfig',
+        cmd = {'LspInfo', 'LspInstall', 'LspStart'},
+        event = {'BufReadPre', 'BufNewFile'},
+        dependencies = {
+            {'hrsh7th/cmp-nvim-lsp'},
+            {'williamboman/mason-lspconfig.nvim'},
+        },
+        config = function()
+            -- This is where all the LSP shenanigans will live
+            local lsp_zero = require('lsp-zero')
+            lsp_zero.extend_lspconfig()
 
       --- if you want to know more about lsp-zero and mason.nvim
       --- read this: https://github.com/VonHeikemen/lsp-zero.nvim/blob/v3.x/doc/md/guides/integrate-with-mason-nvim.md
@@ -81,11 +89,18 @@ return {
 							settings = {
 								Lua = {
 									diagnostics = {
-										globals = { 'vim' }
+										globals = { 'vim', 'capabilities', 'on_attach'}
 									}
 								}
 							}})
 					end,
+                    require('lspconfig').rust_analyzer.setup({
+                        capabilities = capabilities,
+                        on_attach = on_attach,
+                        cmd = {
+                            "rustup", "run", "stable", "rust-analyzer",
+                        }
+                    }),
 				}
 			})
 		end

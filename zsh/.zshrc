@@ -76,4 +76,4 @@ alias cd="z"
 export PATH="$HOME/.tmux/plugins/tmuxifier/bin:$PATH"
 eval "$(tmuxifier init -)"
 
-export PATH=$PATH:$HOME/.spicetify
+export PATH=$PATH:$HOME/.spicetify:$HOME/.local/bin

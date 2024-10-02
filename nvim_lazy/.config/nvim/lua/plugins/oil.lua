@@ -5,7 +5,9 @@ return {
         priority = 1000,
         opts = {
             default_file_explorer = true,
-            show_hidden = true,
+            view_options = {
+                show_hidden = true,
+            },
             is_hidden_file = function(name, bufnr)
                 return vim.startswith(name, '.')
             end,

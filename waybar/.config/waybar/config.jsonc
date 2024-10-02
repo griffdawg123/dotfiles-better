@@ -1,6 +1,6 @@
 // -*- mode: jsonc -*-
 {
-    "width": 1280, // Waybar width
+    "width": 1920, // Waybar width
     "spacing": 4, // Gaps between modules (4px)
     "modules-left": [
         "hyprland/window",
@@ -29,7 +29,9 @@
     "hyprland/window": {
         "rewrite" : {
             "(.*) — Mozilla Firefox": "🌎 $1",
+            "(.*) — Zen Browser": "🌎 $1",
             "(nvim) (.*)": "   NeoVim",
+            "rofi - (.*)": "$1",
 
         }
     },
@@ -80,7 +82,7 @@
         "on-click": "pavucontrol"
     },
     "custom/media": {
-        "format": "{icon} {}",
+        "format": "{0} {icon}",
         "return-type": "json",
         "max-length": 40,
         "format-icons": {

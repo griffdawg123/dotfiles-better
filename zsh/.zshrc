@@ -66,7 +66,7 @@ _fzf_comprun() {
 }
 
 # === EZA ===
-alias ls="eza --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions --group-directories-first"
+alias ls="eza --all --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions --group-directories-first"
 
 # === ZOXIDE ===
 eval "$(zoxide init zsh)"

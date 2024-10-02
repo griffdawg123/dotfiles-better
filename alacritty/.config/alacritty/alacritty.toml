@@ -1,6 +1,7 @@
 import = ["~/.config/alacritty/keybindings.toml"]
 
 [window]
+    opacity = 0.75
     decorations = "None"
     blur = true
 [font]

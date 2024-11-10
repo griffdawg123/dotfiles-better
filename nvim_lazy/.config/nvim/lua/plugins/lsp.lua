@@ -79,21 +79,24 @@ return {
         lsp_zero.default_keymaps({buffer = bufnr})
       end)
 
-			require('mason-lspconfig').setup({
-				ensure_installed = {},
-				handlers = {
-					-- this first function is the "default handler"
-					-- it applies to every language server without a "custom handler"
-					function(server_name)
-						require('lspconfig')[server_name].setup({
-							settings = {
-								Lua = {
-									diagnostics = {
-										globals = { 'vim', 'capabilities', 'on_attach'}
-									}
-								}
-							}})
-					end,
+            local homeDir = os.getenv("HOME")
+            local eslint_config = homeDir .. '/.eslint.config.js'
+            local latestNodeVersion = 'v18.20.4'
+            require('mason-lspconfig').setup({
+                ensure_installed = {},
+                handlers = {
+                    -- this first function is the "default handler"
+                    -- it applies to every language server without a "custom handler"
+                    function(server_name)
+                        require('lspconfig')[server_name].setup({
+                            settings = {
+                                Lua = {
+                                    diagnostics = {
+                                        globals = { 'vim', 'capabilities', 'on_attach'}
+                                    }
+                                }
+                            }})
+                    end,
                     require('lspconfig').rust_analyzer.setup({
                         capabilities = capabilities,
                         on_attach = on_attach,
@@ -101,8 +104,31 @@ return {
                             "rustup", "run", "stable", "rust-analyzer",
                         }
                     }),
-				}
-			})
-		end
-	}
+                    require('lspconfig').eslint.setup({
+                        capabilities = capabilities,
+                        root_dir = function(fname)
+                            return require('lspconfig').util.find_git_ancestor(fname)
+                        end,
+                        -- cmd = { 'vscode-eslint-language-server', '--stdio' --[[ '--stdin', '--stdin-filename', '%filepath' ]] },
+                        -- cmd = { 'eslint', '--stdin', '--stdin-filename', '%filepath' },
+                        filetypes = { 'javascript', 'javascriptreact' },
+                        settings = {
+                            debug = true,
+                            rootMarkers = { '.git/' },
+                            languages = {
+                                javascript = { eslint_config },
+                                javascriptreact = { eslint_config },
+                            },
+                            workingDirectory = { mode = 'auto' },
+                            options = {
+                                overrideConfigFile = eslint_config,
+                            },
+                            nodePath = homeDir .. '/.nvm/versions/node/' .. latestNodeVersion .. '/lib/node_modules/'
+                        },
+                        libs = { homeDir .. '/.nvm/versions/node/' .. latestNodeVersion .. '/lib/node_modules/' },
+                    })
+                }
+            })
+        end
+    }
 }

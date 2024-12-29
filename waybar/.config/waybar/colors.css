@@ -1,1 +1,3 @@
-@define-color main-color: #1e1738ee
+* {
+    --main-color: #1e1738ee;
+}

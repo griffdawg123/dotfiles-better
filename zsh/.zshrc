@@ -1,8 +1,8 @@
 # Path to your Oh My Zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+# export ZSH="$HOME/.oh-my-zsh"
 #
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+# ZSH_THEME="robbyrussell"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -18,12 +18,12 @@ ZSH_THEME="robbyrussell"
 # HYPHEN_INSENSITIVE="true"
 
 # Auto-update behavior
-zstyle ':omz:update' mode auto      # update automatically without asking
+# zstyle ':omz:update' mode auto      # update automatically without asking
 
 # zsh plugins
-plugins=(git)
+# plugins=(git)
 
-source $ZSH/oh-my-zsh.sh
+# source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
@@ -87,3 +87,8 @@ export NVM_DIR="$HOME/.nvm"
 [[ -f /home/griffdawg/.dart-cli-completion/zsh-config.zsh ]] && . /home/griffdawg/.dart-cli-completion/zsh-config.zsh || true
 ## [/Completion]
 
+eval "$(starship init zsh)"
+
+## use zsh for ssh connections
+
+export ssh="ssh $1 \"zsh -l\""

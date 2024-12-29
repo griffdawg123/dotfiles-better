@@ -1,0 +1,16 @@
+# -- directory
+# -- git branch and status (modified files, staged, behind, up to date)
+# -- Success/failed command
+# -- Modules: Battery, command duration, env values (user, terminal)
+# -- Langs: Python, Javascript/node, Rust
+# -- Host name
+# -- OS
+
+# ~/.config/starship.toml
+
+[line_break]
+disabled = true
+
+[sudo]
+disabled = false
+

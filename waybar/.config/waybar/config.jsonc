@@ -1,44 +1,44 @@
 // -*- mode: jsonc -*-
 {
-    "width": 2256, // Waybar width
     "spacing": 4, // Gaps between modules (4px)
     "modules-left": [
-        "hyprland/workspaces",
-    ],
-    "modules-center": [
-        "custom/media",
-    ],
-    "modules-right": [
-        "disk",
-        "pulseaudio",
-        "backlight",
-        "network",
-        "battery",
-        "clock",
-        "custom/notification",
-        "custom/power"
-    ],
-    "keyboard-state": {
-        "numlock": false,
-        "capslock": true,
-        "format": "{name} {icon}",
-        "format-icons": {
-            "locked": "",
-            "unlocked": ""
-        }
-    },
-    "hyprland/window": {
-        "rewrite" : {
-            "(.*) — Mozilla Firefox": "🌎 $1",
-            "(.*) — Zen Browser": "🌎 $1",
-            "(nvim) (.*)": "   NeoVim",
-            "rofi - (.*)": "$1",
-
+    "hyprland/workspaces",
+  "hyprland/window",
+  ],
+  "modules-center": [
+    "custom/media",
+  ],
+  "modules-right": [
+    "pulseaudio",
+    "backlight",
+    "network",
+    "battery",
+    "clock",
+    "custom/launcher",
+    "custom/notification",
+    "custom/power"
+  ],
+  "keyboard-state": {
+    "numlock": false,
+    "capslock": true,
+    "format": "{name} {icon}",
+    "format-icons": {
+      "locked": "",
+      "unlocked": ""
     }
+  },
+  "hyprland/window": {
+    "rewrite" : {
+      "(.*) — Mozilla Firefox": "🌎 $1",
+      "(.*) — Zen Browser": "🌎 $1",
+      "(nvim) (.*)": "   NeoVim",
+      "rofi - (.*)": "$1",
+      "~": "🏠",
+    },
   },
   "clock": {
     "timezone": "Australia/Sydney",
-    "format": "{:%a %d-%m-%Y %H:%M}",
+    "format": "{:%d-%m %H:%M}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
     "format-alt": "{:%H:%M}"
   },
@@ -59,12 +59,12 @@
     "format-icons": ["", "", "", "", ""]
   },
   "network": {
-    "format-wifi": "{essid} ({signalStrength}%) ",
+    "format-wifi": "({signalStrength}%) ",
     "format-ethernet": "{ipaddr}/{cidr} ",
     "tooltip-format": "{ifname} via {gwaddr} ",
     "format-linked": "{ifname} (No IP) ",
     "format-disconnected": "Disconnected ⚠",
-    "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    "format-alt": "{ifname}: {essid}"
   },
   "pulseaudio": {
     "format": "{volume}% {icon}",
@@ -95,7 +95,7 @@
     "on-click": "playerctl play-pause"
   },
   "custom/power": {
-    "format" : "⏻ ",
+    "format" : "⏻",
     "tooltip": false,
     "on-click": "~/.config/rofi/powermenu/type-2/powermenu.sh"
   },
@@ -138,8 +138,19 @@
   },
   "disk": {
     "interval": 30,
-    "format": "{percentage_used}%",
+    "format": "{percentage_used}% ",
     "format-alt": "{specific_used:0.2f}/{specific_total:0.2f}GB ",
-    "unit": "GB",
+    "unit": "GB"
+  },
+  "custom/launcher": {
+    "format" : "󰀻",
+    "tooltip": false,
+    "on-click": "~/.config/rofi/launchers/type-3/launcher.sh"
+  },
+  "custom/window_title": {
+    "format": "{}",
+    "exec": "~/.config/waybar/scripts/window_title.sh",
+    "return-type": "json",
+    "persistent": true
   },
 }

@@ -77,10 +77,15 @@ export PATH="$HOME/.tmux/plugins/tmuxifier/bin:$PATH"
 eval "$(tmuxifier init -)"
 
 export PATH=$PATH:$HOME/.spicetify:$HOME/.local/bin
+export PATH=$PATH:$HOME/.cargo/bin
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+export GOPATH="$HOME/go"
+
+export PATH="$GOPATH/bin:$PATH"
 
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
@@ -89,6 +94,8 @@ export NVM_DIR="$HOME/.nvm"
 
 eval "$(starship init zsh)"
 
-## use zsh for ssh connections
+export DOCKER_CLI_EXPERIMENTAL=enabled
 
-export ssh="ssh $1 \"zsh -l\""
+alias v="nvim ."
+
+bindkey -s "^b" "tmux attach || tmux new\n"

@@ -1,134 +1,38 @@
 return {
-  {
-    'VonHeikemen/lsp-zero.nvim',
-    branch = 'v3.x',
-    lazy = true,
-    config = false,
-    init = function()
-      -- Disable automatic setup, we are doing it manually
-      vim.g.lsp_zero_extend_cmp = 0
-      vim.g.lsp_zero_extend_lspconfig = 0
-    end,
-  },
-  {
-    'williamboman/mason.nvim',
-    lazy = false,
-    config = true,
-  },
-
-  -- Autocompletion
-  {
-    'hrsh7th/nvim-cmp',
-    event = 'InsertEnter',
-    dependencies = {
-      {'L3MON4D3/LuaSnip'},
-    },
-    config = function()
-      -- Here is where you configure the autocompletion settings.
-      local lsp_zero = require('lsp-zero')
-      lsp_zero.extend_cmp()
-
-      -- And you can configure cmp even more, if you want to.
-      local cmp = require('cmp')
-      local cmp_action = lsp_zero.cmp_action()
-
-            cmp.setup({
-                formatting = lsp_zero.cmp_format({details = true}),
-                mapping = cmp.mapping.preset.insert({
-                    ['<C-Space>'] = cmp.mapping.complete(),
-                    ['<C-u>'] = cmp.mapping.scroll_docs(-4),
-                    ['<C-d>'] = cmp.mapping.scroll_docs(4),
-                    ['<C-f>'] = cmp_action.luasnip_jump_forward(),
-                    ['<C-b>'] = cmp_action.luasnip_jump_backward(),
-                    ['<CR>'] = cmp.mapping.confirm({select = true}),
-                }),
-                snippet = {
-                    expand = function(args)
-                        require('luasnip').lsp_expand(args.body)
-                    end,
-                },
-                sources = cmp.config.sources({
-                    { name = 'nvim_lsp' },
-                    { name = 'luasnip' },
-                },
-                    {
-                        { name = 'buffer' },
-                    })
-            })
-        end
-    },
-    -- LSP
+  "neovim/nvim-lspconfig",
+  opts = {},
+  dependencies = {
     {
-        'neovim/nvim-lspconfig',
-        cmd = {'LspInfo', 'LspInstall', 'LspStart'},
-        event = {'BufReadPre', 'BufNewFile'},
-        dependencies = {
-            {'hrsh7th/cmp-nvim-lsp'},
-            {'williamboman/mason-lspconfig.nvim'},
+      "folke/lazydev.nvim",
+      ft = "lua", -- only load on lua files
+      opts = {
+        library = {
+          -- See the configuration section for more details
+          -- Load luvit types when the `vim.uv` word is found
+          { path = "${3rd}/luv/library", words = { "vim%.uv" } },
         },
-        config = function()
-            -- This is where all the LSP shenanigans will live
-            local lsp_zero = require('lsp-zero')
-            lsp_zero.extend_lspconfig()
-
-      --- if you want to know more about lsp-zero and mason.nvim
-      --- read this: https://github.com/VonHeikemen/lsp-zero.nvim/blob/v3.x/doc/md/guides/integrate-with-mason-nvim.md
-      lsp_zero.on_attach(function(client, bufnr)
-        -- see :help lsp-zero-keybindings
-        -- to learn the available actions
-        lsp_zero.default_keymaps({buffer = bufnr})
-      end)
-
-            local homeDir = os.getenv("HOME")
-            local eslint_config = homeDir .. '/.eslint.config.js'
-            local latestNodeVersion = 'v18.20.4'
-            require('mason-lspconfig').setup({
-                ensure_installed = {},
-                handlers = {
-                    -- this first function is the "default handler"
-                    -- it applies to every language server without a "custom handler"
-                    function(server_name)
-                        require('lspconfig')[server_name].setup({
-                            settings = {
-                                Lua = {
-                                    diagnostics = {
-                                        globals = { 'vim', 'capabilities', 'on_attach'}
-                                    }
-                                }
-                            }})
-                    end,
-                    require('lspconfig').rust_analyzer.setup({
-                        capabilities = capabilities,
-                        on_attach = on_attach,
-                        cmd = {
-                            "rustup", "run", "stable", "rust-analyzer",
-                        }
-                    }),
-                    require('lspconfig').eslint.setup({
-                        capabilities = capabilities,
-                        root_dir = function(fname)
-                            return require('lspconfig').util.find_git_ancestor(fname)
-                        end,
-                        -- cmd = { 'vscode-eslint-language-server', '--stdio' --[[ '--stdin', '--stdin-filename', '%filepath' ]] },
-                        -- cmd = { 'eslint', '--stdin', '--stdin-filename', '%filepath' },
-                        filetypes = { 'javascript', 'javascriptreact' },
-                        settings = {
-                            debug = true,
-                            rootMarkers = { '.git/' },
-                            languages = {
-                                javascript = { eslint_config },
-                                javascriptreact = { eslint_config },
-                            },
-                            workingDirectory = { mode = 'auto' },
-                            options = {
-                                overrideConfigFile = eslint_config,
-                            },
-                            nodePath = homeDir .. '/.nvm/versions/node/' .. latestNodeVersion .. '/lib/node_modules/'
-                        },
-                        libs = { homeDir .. '/.nvm/versions/node/' .. latestNodeVersion .. '/lib/node_modules/' },
-                    })
-                }
-            })
-        end
-    }
+      },
+    },
+  },
+  config = function(_, opts)
+    -- Configure LSP servers
+    require("lspconfig").lua_ls.setup({
+      settings = {
+        Lua = {
+          diagnostics = {
+            globals = { "vim" }, -- Recognize 'vim' as a global variable
+          },
+          workspace = {
+            library = vim.api.nvim_get_runtime_file("", true), -- Include Neovim runtime files
+          },
+        },
+      },
+    })
+    -- local  mason_lspconfig = require("mason-lspconfig")
+    -- for _, server in ipairs(mason_lspconfig.get_installed_servers()) do
+    --   if server ~= "lua_ls" then
+    --     require("lspconfig")[server].setup({})
+    --   end
+    -- end
+  end,
 }

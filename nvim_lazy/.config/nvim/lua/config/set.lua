@@ -18,7 +18,7 @@ vim.opt.undofile = true
 vim.opt.hlsearch = false
 vim.opt.incsearch = true
 
-vim.opt.termguicolors = false
+vim.opt.termguicolors = true
 
 vim.opt.scrolloff = 8
 vim.opt.signcolumn = "yes"
@@ -29,6 +29,21 @@ vim.opt.updatetime = 50
 vim.opt.colorcolumn = "80"
 
 vim.g.mapleader = " "
-vim.o.guifont="CaskaydiaCove NF:style=Italic"
+vim.o.guifont = "0xProto Mono Nerd Font Mono:h14"
 
-vim.cmd[[colorscheme tokyonight]]
+vim.cmd([[colorscheme tokyonight]])
+
+vim.opt.clipboard = "unnamedplus"
+
+vim.opt.winborder = "rounded"
+
+vim.api.nvim_create_autocmd("BufReadPost", {
+	pattern = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp" },
+	callback = function()
+		local file = vim.fn.expand("%:p")
+		vim.cmd("enew") -- open empty buffer
+		vim.cmd("setlocal buftype=nofile bufhidden=hide noswapfile")
+		vim.cmd("term viu -w $(tput cols) " .. vim.fn.shellescape(file))
+		vim.cmd("startinsert") -- go into terminal mode
+	end,
+})

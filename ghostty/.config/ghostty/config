@@ -3,3 +3,5 @@ window-decoration = false
 background = 000000
 font-family = "0xProtoNerdFontMono"
 font-size = 20
+keybind = ctrl+shift+t=unbind
+

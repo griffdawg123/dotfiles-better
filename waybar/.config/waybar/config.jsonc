@@ -9,13 +9,17 @@
     "custom/media",
   ],
   "modules-right": [
+    "disk",
+    "custom/smb_share",
     "pulseaudio",
     "backlight",
     "network",
     "battery",
     "clock",
     "custom/launcher",
+    "custom/bluetooth",
     "custom/notification",
+    "custom/idle_toggle",
     "custom/power"
   ],
   "keyboard-state": {
@@ -53,7 +57,7 @@
     },
     "format": "{capacity}% {icon}",
     "format-full": "{capacity}% {icon}",
-    "format-charging": "{capacity}% ",
+    "format-charging": "{capacity}% ",
     "format-plugged": "{capacity}% ",
     "format-alt": "{time} {icon}",
     "format-icons": ["", "", "", "", ""]
@@ -68,19 +72,19 @@
   },
   "pulseaudio": {
     "format": "{volume}% {icon}",
-    "format-bluetooth": "{volume}% {icon}",
-    "format-bluetooth-muted": " {icon}",
-    "format-muted": "Muted 󰝟",
+    "format-bluetooth": "{volume}% {icon} ",
+    "format-bluetooth-muted": " {icon} ",
+    "format-muted": "Muted ",
     "format-icons": {
       "headphone": "",
-      "hands-free": "",
-      "headset": "",
+      "hands-free": "",
+      "headset": "",
       "phone": "",
       "portable": "",
       "car": "",
       "default": ["", "", ""]
     },
-    "on-click": "pavucontrol"
+    "on-click": "$HOME/.config/waybar/scripts/fuzzel-audio-select.sh"
   },
   "custom/media": {
     "format": "{0} {icon}",
@@ -145,12 +149,29 @@
   "custom/launcher": {
     "format" : "󰀻",
     "tooltip": false,
-    "on-click": "~/.config/rofi/launchers/type-3/launcher.sh"
+    "on-click": "fuzzel"
   },
   "custom/window_title": {
     "format": "{}",
     "exec": "~/.config/waybar/scripts/window_title.sh",
     "return-type": "json",
     "persistent": true
+  },
+  "custom/bluetooth": {
+    "format": "󰂯",
+    "on-click": "bzmenu --launcher fuzzel",
+  },
+  "custom/idle_toggle": {
+    "format": "{}",
+    "exec": "~/.config/waybar/scripts/idle_toggle.sh",
+    "persistent": true,
+    "tooltip": false,
+    "on-click": "~/.config/waybar/scripts/idle_toggle.sh --toggle"
+  },
+  "custom/smb_share": {
+    "format": "{}",
+    "exec": "~/.config/waybar/scripts/smb_share_status.sh",
+    "persistent": true,
+    "tooltip-format": "Status of SMB Share",
   },
 }

@@ -47,3 +47,5 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 		vim.cmd("startinsert") -- go into terminal mode
 	end,
 })
+
+vim.opt.wrap = true

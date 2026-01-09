@@ -99,3 +99,5 @@ export DOCKER_CLI_EXPERIMENTAL=enabled
 alias v="nvim ."
 
 bindkey -s "^b" "tmux attach || tmux new\n"
+
+export BEMOJI_PICKER_CMD="$(which fuzzel) -d"

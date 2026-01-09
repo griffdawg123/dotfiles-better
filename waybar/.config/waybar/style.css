@@ -127,7 +127,10 @@ window#waybar.empty #window {
 #custom-notification,
 #disk,
 #custom-music,
-#custom-launcher {
+#custom-launcher,
+#custom-idle_toggle,
+#custom-smb_share,
+#custom-bluetooth {
   padding: 0 0.75em;
   color: #FDE8E9;
   border-radius: 10px;

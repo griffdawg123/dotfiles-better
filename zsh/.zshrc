@@ -102,41 +102,38 @@ bindkey -e
 bindkey -s "^b" "tmux attach || tmux new\n"
 
 export BEMOJI_PICKER_CMD="$(which fuzzel) -d"
-# --- LLM Modal Shell ---
-export LLM_MODE=0
-
-toggle-llm-mode() {
-  if [[ $LLM_MODE -eq 0 ]]; then
-    export LLM_MODE=1
-    export OLD_PROMPT_LLM=$PROMPT
-    PROMPT="%F{cyan}🤖 %f%B%F{green}LLM%f%b %F{blue}%~%f > "
-  else
-    export LLM_MODE=0
-    PROMPT=$OLD_PROMPT_LLM
-  fi
-  zle reset-prompt
-}
-zle -N toggle-llm-mode
-bindkey '^G' toggle-llm-mode
-
-llm-accept-line() {
-  if [[ $LLM_MODE -eq 1 && -n $BUFFER ]]; then
-    # Store query to show in history
-    local query=$BUFFER
-    # Move to new line and clear buffer for display
-    echo ""
-
-    # Run the tool with the key from your aichat config
-    GEMINI_API_KEY="AIzaSyBMBmGHdOn5Krv6_gZaYVYOZTUn_sT2hXk" \
-    llm-shell --prompt "$query"
-
-    # Clear buffer and reset
-    BUFFER=""
-    zle reset-prompt
-    else
-      zle .accept-line
-    fi
-}
-zle -N accept-line llm-accept-line
 # -----------------------
 
+
+# === ZEN SHELL (Single Line, Muted Colors) ===
+# P10k instant prompt
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Oh My Zsh setup (if available)
+if [[ -d "$HOME/.oh-my-zsh" ]]; then
+  export ZSH="$HOME/.oh-my-zsh"
+  ZSH_THEME="powerlevel10k/powerlevel10k"
+
+  # Add to existing plugins or create array
+  if [[ -z "${plugins[*]}" ]]; then
+    plugins=(git)
+  fi
+  [[ "${plugins[*]}" =~ "zsh-autosuggestions" ]] || plugins+=(zsh-autosuggestions)
+  [[ "${plugins[*]}" =~ "zsh-syntax-highlighting" ]] || plugins+=(zsh-syntax-highlighting)
+
+  source $ZSH/oh-my-zsh.sh
+
+  # Load P10k configuration from dotfiles
+  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+  # Enhanced auto-suggestions (muted)
+  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240,italic'
+  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+  bindkey '^ ' autosuggest-accept  # Ctrl+Space
+
+else
+  # Fallback to starship if no Oh My Zsh
+  eval "$(starship init zsh)"
+fi

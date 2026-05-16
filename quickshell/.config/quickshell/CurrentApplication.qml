@@ -1,50 +1,62 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
+import Quickshell.Io
 
 Text {
   property int fontSize: 18
   id: currentApplication
   font.pixelSize: fontSize
-  color: "#9ece6a"
+  color: theme.colors.purple
   text: ""
-  property var getApplicationName: [`${Quickshell.env("HOME")}/.config/quickshell/scripts/get_current_active_window_initial_title.sh`, Hyprland.activeToplevel?.wayland.appId]
+
+  function getAppName(appId) {
+    if (!appId) return ""
+    var nameMap = {
+      "zen": "Zen Browser",
+      "firefox": "Firefox",
+      "chromium": "Chromium",
+      "chrome": "Chrome",
+      "alacritty": "Alacritty",
+      "kitty": "Kitty",
+      "ghostty": "Ghostty",
+      "code": "VS Code",
+      "code-oss": "VS Code",
+      "spotify": "Spotify",
+      "discord": "Discord",
+      "slack": "Slack",
+      "thunderbird": "Thunderbird",
+      " nautilus": "Files",
+      "org.freedesktop.Nautilus": "Files",
+      "foot": "Foot",
+      "wezterm": "WezTerm"
+    }
+    var lower = appId.toLowerCase()
+    return nameMap[lower] || appId
+  }
+
+  function updateApp() {
+    var toplevel = Hyprland.activeToplevel
+    if (toplevel && toplevel.wayland) {
+      var appId = toplevel.wayland.appId || ""
+      currentApplication.text = " " + getAppName(appId) + " "
+    }
+  }
+
   Socket {
-    // Create and connect a Socket to the hyprland event socket.
-    // https://wiki.hyprland.org/IPC/
     path: `${Quickshell.env("XDG_RUNTIME_DIR")}/hypr/${Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")}/.socket2.sock`
     connected: true
 
     parser: SplitParser {
-      // Match active window change events
-      property var regex: new RegExp("\(activewindow>>(.+),.*|activeworkspace>>(.+),.*\)");
-      // Sent for every line read from the socket
+      property var regex: new RegExp("\(activewindow>>(.+),.*\)");
       onRead: msg => {
         const match = regex.exec(msg);
         if (match != null) {
-          textUpdate.exec(currentApplication.getApplicationName);
+          Qt.callLater(updateApp)
         }
       }
     }
   }
 
-  property var titleProcess: Process {
-    id: textUpdate
-    command: currentApplication.getApplicationName
-    stdout: StdioCollector {
-      onStreamFinished: currentApplication.text = this.text.trim() ? " " + this.text.trim().replace(/^"(.+)"$/,'$1') + " " : ""
-    }
-  }
-
-  Connections {
-    target: Hyprland
-    function onActiveTopLayerChanged() {
-      titleProcess.exec(currentApplication.getApplicationName)
-    }
-    function onWorkspaceChanged() {
-      titleProcess.exec(currentApplication.getApplicationName)
-    }
-  }
-
+  Component.onCompleted: updateApp()
 }

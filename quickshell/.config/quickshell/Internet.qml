@@ -1,32 +1,23 @@
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import QtQuick.Controls
 
 Rectangle {
   id: internetContainer
-  
-  // Color scheme variables
-  property color textColor: "#c0caf5"
-  property color noConnectionTextColor: "#f7768e"
-  property color iconColor: "#9ece6a"
-  property color noConnectionIconColor: "#f7768e"
-  property color tooltipBgColor: "#1a1b26"
-  property color tooltipTextColor: "#c0caf5"
-  property color tooltipBorderColor: "#565f89"
+
   property int fontSize: 18
-  
-  color: "transparent"
-  radius: 8
-  border.width: 2
-  border.color: "transparent"
-  
-  // Network information
   property string connectionType: "none"
   property string wifiName: ""
   property int wifiStrength: 0
-  
-  // Process to check for wired connection
+  property bool vpnConnected: false
+
+  color: "transparent"
+  radius: 8
+  implicitWidth: internetRow.implicitWidth + 8
+  implicitHeight: internetRow.implicitHeight
+
+  Behavior on color { ColorAnimation { duration: 150 } }
+
   Process {
     id: wiredCheck
     command: ["bash", "-c", "nmcli -t -f TYPE,DEVICE connection show --active | grep ethernet"]
@@ -42,8 +33,7 @@ Rectangle {
       }
     }
   }
-  
-  // Process to check for WiFi connection
+
   Process {
     id: wifiCheck
     command: ["bash", "-c", "nmcli -t -f TYPE,DEVICE,NAME connection show --active | grep wireless"]
@@ -63,8 +53,7 @@ Rectangle {
       }
     }
   }
-  
-  // Process to get WiFi signal strength
+
   Process {
     id: signalCheck
     command: ["bash", "-c", "nmcli -t -f IN-USE,SIGNAL device wifi list | grep '*'"]
@@ -78,67 +67,75 @@ Rectangle {
       }
     }
   }
-  
-  // Timer to update network status
+
+  Process {
+    id: vpnCheck
+    command: ["bash", "-c", "ip link show | grep -qE ' (proton|tun)[0-9]*:' && echo 'connected' || echo 'disconnected'"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        internetContainer.vpnConnected = this.text.trim() === "connected"
+      }
+    }
+  }
+
   Timer {
     id: updateTimer
     interval: 2000
     running: true
     repeat: true
-    onTriggered: wiredCheck.running = true;
+    onTriggered: {
+      wiredCheck.running = true
+      vpnCheck.running = true
+    }
   }
-  
+
   Row {
     id: internetRow
-    spacing: 8
-    anchors.right: parent.right
+    spacing: 6
+    anchors.left: parent.left
     anchors.verticalCenter: parent.verticalCenter
-    anchors.margins: 8
-    
-    // Connection icon
+
     Text {
       id: connectionIcon
       anchors.verticalCenter: parent.verticalCenter
       font.pixelSize: internetContainer.fontSize
-      color: internetContainer.connectionType === "none" ? noConnectionIconColor : iconColor
-      
+      color: internetContainer.connectionType === "none" ? theme.colors.offline : theme.colors.online
+
       text: {
         if (internetContainer.connectionType === "wired") {
-          return "🔌"
+          return "\u{1F50C}"
         } else if (internetContainer.connectionType === "wireless") {
-          // WiFi strength icons
-          if (internetContainer.wifiStrength >= 80) return "📶"
-          else if (internetContainer.wifiStrength >= 60) return "📡"
-          else if (internetContainer.wifiStrength >= 40) return "📶"
-          else if (internetContainer.wifiStrength >= 20) return "📡"
-          else return "📶"
+          if (internetContainer.wifiStrength >= 80) return "\u{1F4F6}"
+          else if (internetContainer.wifiStrength >= 50) return "\u{1F4F6}"
+          else if (internetContainer.wifiStrength >= 20) return "\u{1F4F6}"
+          else return "\u{1F4F6}"
         } else {
-          return "❌"
+          return "\u26D4"
         }
       }
     }
-    
-    // Connection text
+
     Text {
       id: connectionText
-      color: internetContainer.connectionType === "none" ? noConnectionTextColor : textColor
+      color: internetContainer.connectionType === "none" ? theme.colors.offline : theme.colors.foreground
       font.pixelSize: internetContainer.fontSize
       anchors.verticalCenter: parent.verticalCenter
-      
+
       text: {
         if (internetContainer.connectionType === "wired") {
           return "Wired"
         } else if (internetContainer.connectionType === "wireless") {
           return internetContainer.wifiName || "Unknown"
         } else {
-          return "No Connection"
+          return "Offline"
         }
       }
-      
+
       MouseArea {
         id: internetMouseArea
         anchors.fill: parent
         hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: {
           nmtuiProc.exec(["alacritty", "-e", "nmtui"])
         }
@@ -149,21 +146,54 @@ Rectangle {
         command: ["alacritty", "-e", "nmtui"]
       }
     }
+
+    Text {
+      id: vpnIcon
+      visible: internetContainer.vpnConnected
+      anchors.verticalCenter: parent.verticalCenter
+      font.pixelSize: internetContainer.fontSize
+      color: theme.colors.online
+      text: "\u{1F512}"
+    }
   }
-  
-  ToolTip {
+
+  Rectangle {
     id: internetTooltip
     visible: internetMouseArea.containsMouse
-    text: {
-      if (internetContainer.connectionType === "wireless") {
-        return "WiFi: " + internetContainer.wifiName + " (" + internetContainer.wifiStrength + "%)"
-      } else if (internetContainer.connectionType === "wired") {
-        return "Wired Connection"
-      } else {
-        return "No Internet Connection"
+    anchors.bottom: parent.top
+    anchors.bottomMargin: 6
+    anchors.horizontalCenter: parent.horizontalCenter
+    color: theme.colors.surface
+    radius: 8
+    border.width: 1
+    border.color: theme.colors.barBorder
+    implicitWidth: internetTooltipText.implicitWidth + 16
+    implicitHeight: internetTooltipText.implicitHeight + 10
+
+    Text {
+      id: internetTooltipText
+      anchors.centerIn: parent
+      font.pixelSize: internetContainer.fontSize * 0.75
+      color: theme.colors.foreground
+      text: {
+        var status = ""
+        if (internetContainer.connectionType === "wireless") {
+          status = internetContainer.wifiName + " (" + internetContainer.wifiStrength + "%)"
+        } else if (internetContainer.connectionType === "wired") {
+          status = "Wired Connection"
+        } else {
+          status = "No Internet Connection"
+        }
+        if (internetContainer.vpnConnected) {
+          status += "\nVPN Connected"
+        }
+        return status
       }
     }
   }
-  
-  Component.onCompleted: wiredCheck.running = true
+
+  Component.onCompleted: {
+    wiredCheck.running = true
+    vpnCheck.running = true
+  }
 }

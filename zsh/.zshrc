@@ -66,7 +66,7 @@ _fzf_comprun() {
 }
 
 # === EZA ===
-alias ls="eza --all --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions --group-directories-first"
+alias ls="eza --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions --group-directories-first"
 
 # === ZOXIDE ===
 eval "$(zoxide init zsh)"
@@ -98,6 +98,45 @@ export DOCKER_CLI_EXPERIMENTAL=enabled
 
 alias v="nvim ."
 
+bindkey -e
 bindkey -s "^b" "tmux attach || tmux new\n"
 
 export BEMOJI_PICKER_CMD="$(which fuzzel) -d"
+# --- LLM Modal Shell ---
+export LLM_MODE=0
+
+toggle-llm-mode() {
+  if [[ $LLM_MODE -eq 0 ]]; then
+    export LLM_MODE=1
+    export OLD_PROMPT_LLM=$PROMPT
+    PROMPT="%F{cyan}🤖 %f%B%F{green}LLM%f%b %F{blue}%~%f > "
+  else
+    export LLM_MODE=0
+    PROMPT=$OLD_PROMPT_LLM
+  fi
+  zle reset-prompt
+}
+zle -N toggle-llm-mode
+bindkey '^G' toggle-llm-mode
+
+llm-accept-line() {
+  if [[ $LLM_MODE -eq 1 && -n $BUFFER ]]; then
+    # Store query to show in history
+    local query=$BUFFER
+    # Move to new line and clear buffer for display
+    echo ""
+
+    # Run the tool with the key from your aichat config
+    GEMINI_API_KEY="AIzaSyBMBmGHdOn5Krv6_gZaYVYOZTUn_sT2hXk" \
+    llm-shell --prompt "$query"
+
+    # Clear buffer and reset
+    BUFFER=""
+    zle reset-prompt
+    else
+      zle .accept-line
+    fi
+}
+zle -N accept-line llm-accept-line
+# -----------------------
+

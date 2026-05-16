@@ -7,12 +7,12 @@ Text {
   property int fontSize: 18
   property string brightnessValue: "0%"
   property var brightnessCommand: ["brightnessctl", "info"]
-  
-  text: "☀️ " + brightnessValue
-  color: "#e0af68"
+
+  text: "\u2600 " + brightnessValue
+  color: theme.colors.yellow
   font.bold: true
   font.pixelSize: fontSize
-  
+
   Process {
     id: brightnessProcess
     command: brightness.brightnessCommand
@@ -25,9 +25,7 @@ Text {
       }
     }
   }
-  
-  Keys.forwardTo: [brightnessKeys]
-  
+
   IpcHandler {
     target: "brightness"
     function brightnessUpdate(): void {

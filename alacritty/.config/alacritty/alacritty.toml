@@ -9,4 +9,4 @@
     size = 16
 
 [general]
-import = ["~/.config/alacritty/keybindings.toml"]
+import = ["~/.config/alacritty/keybindings.toml", "~/.config/alacritty/zen-colors.toml"]

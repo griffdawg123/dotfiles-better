@@ -99,16 +99,24 @@ Rectangle {
       id: connectionIcon
       anchors.verticalCenter: parent.verticalCenter
       font.pixelSize: internetContainer.fontSize
-      color: internetContainer.connectionType === "none" ? theme.colors.offline : theme.colors.online
+
+      color: {
+        if (internetContainer.connectionType === "none") return theme.colors.offline
+        if (internetContainer.connectionType === "wireless") {
+          if (internetContainer.wifiStrength < 20) return theme.colors.red
+          if (internetContainer.wifiStrength < 50) return theme.colors.yellow
+        }
+        return theme.colors.online
+      }
 
       text: {
         if (internetContainer.connectionType === "wired") {
           return "\u{1F50C}"
         } else if (internetContainer.connectionType === "wireless") {
-          if (internetContainer.wifiStrength >= 80) return "\u{1F4F6}"
-          else if (internetContainer.wifiStrength >= 50) return "\u{1F4F6}"
-          else if (internetContainer.wifiStrength >= 20) return "\u{1F4F6}"
-          else return "\u{1F4F6}"
+          if (internetContainer.wifiStrength >= 80) return "\u25CF\u25CF\u25CF\u25CF"
+          else if (internetContainer.wifiStrength >= 50) return "\u25CF\u25CF\u25CF\u25CB"
+          else if (internetContainer.wifiStrength >= 20) return "\u25CF\u25CF\u25CB\u25CB"
+          else return "\u25CF\u25CB\u25CB\u25CB"
         } else {
           return "\u26D4"
         }

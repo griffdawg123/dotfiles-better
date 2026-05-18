@@ -1,0 +1,113 @@
+/**
+ * Zen Emoji Picker
+ * Used by rofimoji via selector_args in ~/.config/rofimoji.cfg
+ * Colour source: ~/.config/zen/zen.sh → ~/.config/rofi/colors/zen.rasi
+ **/
+
+configuration {
+    show-icons: false;
+}
+
+@import "~/.config/rofi/colors/zen.rasi"
+
+* {
+    font: "0xProto Nerd Font Mono 15";
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:      "real";
+    location:          center;
+    anchor:            center;
+    fullscreen:        false;
+    width:             580px;
+    enabled:           true;
+    margin:            0px;
+    padding:           20px;
+    border:            1px solid;
+    border-radius:     12px;
+    border-color:      @selected;
+    cursor:            "default";
+    background-color:  @background;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    enabled:           true;
+    spacing:           12px;
+    padding:           0px;
+    background-color:  transparent;
+    children:          [ "inputbar", "listview" ];
+}
+
+/*****----- Search Bar -----*****/
+inputbar {
+    enabled:           true;
+    spacing:           10px;
+    padding:           10px 14px;
+    border:            0px solid;
+    border-radius:     8px;
+    background-color:  @background-alt;
+    text-color:        @foreground;
+    children:          [ "prompt", "entry" ];
+}
+prompt {
+    enabled:           true;
+    background-color:  transparent;
+    text-color:        @selected;
+}
+entry {
+    enabled:           true;
+    background-color:  transparent;
+    text-color:        @foreground;
+    cursor:            text;
+    placeholder:       "Search emoji…";
+    placeholder-color: #878787;
+}
+
+/*****----- List -----*****/
+listview {
+    enabled:           true;
+    columns:           1;
+    lines:             12;
+    cycle:             true;
+    dynamic:           true;
+    scrollbar:         false;
+    layout:            vertical;
+    fixed-height:      true;
+    spacing:           2px;
+    padding:           0px;
+    background-color:  transparent;
+    cursor:            "default";
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled:           true;
+    spacing:           0px;
+    padding:           8px 12px;
+    border:            0px solid;
+    border-radius:     8px;
+    background-color:  transparent;
+    text-color:        @foreground;
+    cursor:            pointer;
+}
+element-text {
+    background-color:  transparent;
+    text-color:        inherit;
+    cursor:            inherit;
+    vertical-align:    0.5;
+    horizontal-align:  0.0;
+}
+element normal.normal {
+    background-color:  transparent;
+    text-color:        @foreground;
+}
+element selected.normal {
+    background-color:  @background-alt;
+    text-color:        @selected;
+}
+element alternate.normal {
+    background-color:  transparent;
+    text-color:        @foreground;
+}

@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 
 Item {
@@ -7,7 +8,7 @@ Item {
     property string user: userField.text
     property string password: passwordField.text
     property int    session: sessionPanel.session
-    property real   inputWidth: Math.min(Screen.width * 0.28, 380)
+    property real   inputWidth: 360
     property real   inputHeight: 44
 
     // Power buttons — bottom left

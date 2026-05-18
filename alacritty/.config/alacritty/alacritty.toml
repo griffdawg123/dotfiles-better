@@ -3,6 +3,7 @@
     opacity = 0.75
     decorations = "None"
     blur = true
+    padding = { x = 10, y = 10 }
 [font]
     normal = { family = "0xProtoNerdFontMono", style = "Regular"}
     size = 16

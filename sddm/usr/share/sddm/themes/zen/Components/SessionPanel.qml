@@ -10,20 +10,22 @@ Item {
     implicitHeight: sessionButton.height
     implicitWidth:  sessionButton.width
 
-    function seedName() {
-        var idx = sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
-        var n = sessionModel.data(sessionModel.index(idx, 0), Qt.UserRole + 1)
-        if (n) {
-            if (n.indexOf("/") !== -1) {
-                n = n.split("/").pop().replace(".desktop", "")
-                n = n.charAt(0).toUpperCase() + n.slice(1)
+    // Instantiator gives proper model role bindings (like a delegate),
+    // avoiding the role-number guessing needed with sessionModel.data()
+    Instantiator {
+        model: sessionModel
+        delegate: QtObject {
+            required property string name
+            required property int index
+            Component.onCompleted: {
+                if (index === sessionModel.lastIndex) {
+                    root.currentName = name
+                }
+                sessionList.currentIndex = sessionModel.lastIndex >= 0
+                    ? sessionModel.lastIndex : 0
             }
-            root.currentName = n
         }
-        sessionList.currentIndex = idx
     }
-
-    Component.onCompleted: seedName()
 
     Button {
         id: sessionButton

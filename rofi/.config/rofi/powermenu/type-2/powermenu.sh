@@ -12,7 +12,7 @@
 
 # Current Theme
 dir="$HOME/.config/rofi/powermenu/type-2"
-theme='style-8'
+theme='zen'
 
 # CMDs
 uptime="`uptime -p | sed -e 's/up //g'`"
@@ -47,6 +47,7 @@ confirm_cmd() {
 		-mesg 'Are you Sure?' \
 		-theme ${dir}/${theme}.rasi
 }
+
 # Ask for confirmation
 confirm_exit() {
 	echo -e "$yes\n$no" | confirm_cmd
@@ -70,6 +71,7 @@ run_cmd() {
 			amixer set Master mute
 			systemctl suspend
 		elif [[ $1 == '--logout' ]]; then
+            hyprctl dispatch exit
 			if [[ "$DESKTOP_SESSION" == 'openbox' ]]; then
 				openbox --exit
 			elif [[ "$DESKTOP_SESSION" == 'bspwm' ]]; then
@@ -78,9 +80,7 @@ run_cmd() {
 				i3-msg exit
 			elif [[ "$DESKTOP_SESSION" == 'plasma' ]]; then
 				qdbus org.kde.ksmserver /KSMServer logout 0 0 0
-			elif [[ "$DESKTOP_SESSION" == 'hyprland' ]]; then
-                hyprctl dispatch exit
-			fi
+            fi
 		fi
 	else
 		exit 0
@@ -97,11 +97,7 @@ case ${chosen} in
 		run_cmd --reboot
         ;;
     $lock)
-		if [[ -x '/usr/bin/betterlockscreen' ]]; then
-			betterlockscreen -l
-		elif [[ -x '/usr/bin/i3lock' ]]; then
-			i3lock
-		fi
+		hyprlock
         ;;
     $suspend)
 		run_cmd --suspend

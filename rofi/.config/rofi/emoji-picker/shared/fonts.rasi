@@ -8,5 +8,5 @@
  **/
 
 * {
-    font: "0xProto Nerd Font Mono 11";
+    font: "Iosevka Nerd Font 16";
 }

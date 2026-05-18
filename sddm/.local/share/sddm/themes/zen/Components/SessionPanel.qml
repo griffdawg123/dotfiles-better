@@ -3,29 +3,27 @@ import QtQuick.Controls 2.15
 
 Item {
     id: root
-    property var  session: sessionList.currentIndex
+    property var    session: sessionList.currentIndex
     property string currentName: "Session"
-    property int inputHeight: 44
-    property var nameMap: ({})
+    property int    inputHeight: 44
 
     implicitHeight: sessionButton.height
-    implicitWidth: sessionButton.width
+    implicitWidth:  sessionButton.width
 
-    // Seed nameMap from delegate context where role bindings work
-    Repeater {
-        model: sessionModel
-        delegate: Item {
-            width: 0; height: 0; visible: false
-            Component.onCompleted: {
-                var m = root.nameMap
-                m[index] = name
-                root.nameMap = m
-                if (index === sessionModel.lastIndex) {
-                    root.currentName = name
-                }
+    function seedName() {
+        var idx = sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
+        var n = sessionModel.data(sessionModel.index(idx, 0), Qt.UserRole + 1)
+        if (n) {
+            if (n.indexOf("/") !== -1) {
+                n = n.split("/").pop().replace(".desktop", "")
+                n = n.charAt(0).toUpperCase() + n.slice(1)
             }
+            root.currentName = n
         }
+        sessionList.currentIndex = idx
     }
+
+    Component.onCompleted: seedName()
 
     Button {
         id: sessionButton
@@ -36,7 +34,7 @@ Item {
 
         contentItem: Text {
             id: labelText
-            text: root.currentName + "  "
+            text: root.currentName + "  "
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             font.family: config.Font

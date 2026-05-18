@@ -1,0 +1,126 @@
+/**
+ * Zen Games Launcher
+ * Colour source: ~/.config/zen/zen.sh → ~/.config/rofi/colors/zen.rasi
+ **/
+
+@import "~/.config/rofi/colors/zen.rasi"
+
+configuration {
+    font:        "0xProto Nerd Font Mono 15";
+    show-icons:  true;
+}
+
+window {
+    fullscreen:        true;
+    height:            100%;
+    width:             100%;
+    transparency:      "real";
+    background-color:  #1c1c1cee;
+    border:            0px;
+}
+
+mainbox {
+    children:          [ prompt, inputbar-box, listview ];
+    padding:           0px;
+    background-color:  transparent;
+}
+
+prompt {
+    width:             100%;
+    margin:            24px 0px 0px 40px;
+    text-color:        @selected;
+    font:              "0xProto Nerd Font Mono Bold 22";
+}
+
+listview {
+    layout:            vertical;
+    padding:           50px 60px;
+    dynamic:           true;
+    columns:           6;
+    spacing:           24px;
+    background-color:  transparent;
+}
+
+inputbar-box {
+    children:          [ dummy, inputbar, dummy ];
+    orientation:       horizontal;
+    expand:            false;
+    background-color:  transparent;
+}
+
+dummy {
+    background-color:  transparent;
+}
+
+inputbar {
+    children:          [ textbox-prompt, entry ];
+    margin:            12px 0px;
+    background-color:  @background-alt;
+    border:            1px solid;
+    border-color:      @selected;
+    border-radius:     8px;
+}
+
+textbox-prompt {
+    text-color:        @selected;
+    horizontal-align:  0.5;
+    vertical-align:    0.5;
+    expand:            false;
+    padding:           8px 12px;
+    background-color:  transparent;
+}
+
+entry {
+    expand:            false;
+    padding:           8px 12px;
+    width:             300px;
+    background-color:  transparent;
+    text-color:        @foreground;
+    border-radius:     0px 8px 8px 0px;
+    cursor:            text;
+    placeholder:       "Search games…";
+    placeholder-color: #878787;
+}
+
+element {
+    children:          [ dummy, element-box, dummy ];
+    padding:           8px;
+    orientation:       vertical;
+    border:            1px solid;
+    border-color:      transparent;
+    border-radius:     10px;
+    background-color:  transparent;
+    cursor:            pointer;
+}
+
+element selected {
+    border-color:      @selected;
+    background-color:  #30303066;
+}
+
+element-box {
+    children:          [ element-icon, element-text ];
+    orientation:       vertical;
+    expand:            false;
+    cursor:            pointer;
+    background-color:  transparent;
+}
+
+element-icon {
+    padding:           8px;
+    cursor:            inherit;
+    size:              33%;
+    margin:            8px;
+    background-color:  transparent;
+}
+
+element-text {
+    horizontal-align:  0.5;
+    cursor:            inherit;
+    text-color:        @foreground;
+    background-color:  transparent;
+}
+
+element-text selected {
+    text-color:        @selected;
+}

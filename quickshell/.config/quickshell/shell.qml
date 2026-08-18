@@ -1,8 +1,8 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
-import Quickshell.Hyprland
 import QtQuick.Layouts
+import Quickshell.Io
 import Quickshell.Services.Mpris
 import Quickshell.Widgets
 
@@ -35,8 +35,24 @@ PanelWindow {
     Qt.callLater(loadWallpaperPath)
   }
 
+  // KDE/KWin port: no hypr/wallpapers dir here -- read Plasma's own current
+  // wallpaper out of its config instead of hardcoding a path.
+  Process {
+    id: wallpaperLookup
+    command: ["sh", "-c",
+      "grep -m1 '^Image=' ~/.config/plasma-org.kde.plasma.desktop-appletsrc | head -1 | cut -d= -f2-"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var path = this.text.trim()
+        if (path) {
+          quantizer.source = path.startsWith("file://") ? path : "file://" + path
+        }
+      }
+    }
+  }
+
   function loadWallpaperPath() {
-    quantizer.source = "file:///home/griffdawg/.config/hypr/wallpapers/wallpaper.jpg"
+    wallpaperLookup.running = true
   }
 
   // Semi-transparent background with rounded corners
@@ -121,19 +137,14 @@ PanelWindow {
 
       Brightness {
         id: brightness
-        anchors.right: hypridle.left
+        anchors.right: internet.left
         anchors.rightMargin: 16
         anchors.verticalCenter: parent.verticalCenter
         fontSize: root.fontSize
       }
 
-      Hypridle {
-        id: hypridle
-        anchors.right: internet.left
-        anchors.rightMargin: 14
-        anchors.verticalCenter: parent.verticalCenter
-        fontSize: root.fontSize
-      }
+      // Hypridle dropped on KDE: it toggled Hyprland's hypridle daemon,
+      // which doesn't exist here -- powerdevil handles idle/lock natively.
 
       Internet {
         id: internet

@@ -129,6 +129,22 @@ PanelWindow {
 
       Hypridle {
         id: hypridle
+        anchors.right: sysMonitor.left
+        anchors.rightMargin: 14
+        anchors.verticalCenter: parent.verticalCenter
+        fontSize: root.fontSize
+      }
+
+      SysMonitor {
+        id: sysMonitor
+        anchors.right: storageMount.left
+        anchors.rightMargin: 14
+        anchors.verticalCenter: parent.verticalCenter
+        fontSize: root.fontSize
+      }
+
+      StorageMount {
+        id: storageMount
         anchors.right: internet.left
         anchors.rightMargin: 14
         anchors.verticalCenter: parent.verticalCenter

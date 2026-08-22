@@ -10,6 +10,7 @@ Item {
     property int    session: sessionPanel.session
     property real   inputWidth: 360
     property real   inputHeight: 44
+    property string loginState: ""
 
     // Power buttons — bottom left
     Row {
@@ -66,14 +67,16 @@ Item {
                 id: passwordField
                 height: panel.inputHeight
                 width: parent.width
+                loginState: panel.loginState
                 onAccepted: loginButton.clicked()
+                onTextChanged: panel.loginState = ""
             }
 
             Button {
                 id: loginButton
                 height: panel.inputHeight
                 width: parent.width
-                enabled: panel.password !== ""
+                enabled: panel.password !== "" && panel.loginState !== "checking"
                 hoverEnabled: true
 
                 contentItem: Text {
@@ -84,7 +87,7 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     color: config.background
-                    text: "Login"
+                    text: panel.loginState === "checking" ? "Checking…" : "Login"
                 }
 
                 background: Rectangle {
@@ -109,7 +112,10 @@ Item {
                     PropertyAnimation { properties: "color"; duration: 150 }
                 }
 
-                onClicked: sddm.login(panel.user, panel.password, panel.session)
+                onClicked: {
+                    panel.loginState = "checking"
+                    sddm.login(panel.user, panel.password, panel.session)
+                }
             }
         }
     }
@@ -117,6 +123,7 @@ Item {
     Connections {
         target: sddm
         function onLoginFailed() {
+            panel.loginState = "failed"
             passwordField.text = ""
             passwordField.focus = true
         }

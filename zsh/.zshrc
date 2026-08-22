@@ -137,3 +137,7 @@ else
   # Fallback to starship if no Oh My Zsh
   eval "$(starship init zsh)"
 fi
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/griffdawg/.local/bin:$PATH"

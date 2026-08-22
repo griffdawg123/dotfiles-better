@@ -12,6 +12,18 @@ return {
 				ensure_installed = { "lua_ls", "rust_analyzer" },
 			})
 
+			vim.api.nvim_create_autocmd("LspAttach", {
+				callback = function(args)
+					local map = function(keys, func, desc)
+						vim.keymap.set("n", keys, func, { buffer = args.buf, desc = desc })
+					end
+					map("gd", vim.lsp.buf.definition, "LSP Go to Definition")
+					map("gD", vim.lsp.buf.declaration, "LSP Go to Declaration")
+					map("gr", vim.lsp.buf.references, "LSP References")
+					map("K", vim.lsp.buf.hover, "LSP Hover")
+				end,
+			})
+
 			vim.diagnostic.config({
 				virtual_text = {
 					spacing = 2,
@@ -36,6 +48,14 @@ return {
 						cargo = {
 							allFeatures = true,
 						},
+					},
+				},
+			})
+			vim.lsp.config("pyright", {
+				capabilities = capabilities,
+				settings = {
+					python = {
+						pythonPath = vim.fn.getcwd() .. "/.venv/bin/python",
 					},
 				},
 			})

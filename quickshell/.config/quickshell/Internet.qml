@@ -11,6 +11,14 @@ Rectangle {
   property int wifiStrength: 0
   property bool vpnConnected: false
 
+  // Bandwidth tracking
+  property real uploadKBps: 0
+  property real downloadKBps: 0
+  property real bandwidthThreshold: 100  // KB/s — arrows appear above this
+  property var _lastRx: 0
+  property var _lastTx: 0
+  property var _lastMs: 0
+
   color: "transparent"
   radius: 8
   implicitWidth: internetRow.implicitWidth + 8
@@ -69,6 +77,30 @@ Rectangle {
   }
 
   Process {
+    id: netStats
+    command: ["bash", "-c", "awk 'NR>2 && !/lo:/{rx+=$2;tx+=$10} END{print rx,tx}' /proc/net/dev"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var parts = this.text.trim().split(" ")
+        if (parts.length < 2) return
+        var rx = parseFloat(parts[0])
+        var tx = parseFloat(parts[1])
+        var now = Date.now()
+        if (internetContainer._lastMs > 0) {
+          var dt = (now - internetContainer._lastMs) / 1000.0
+          if (dt > 0) {
+            internetContainer.downloadKBps = Math.max(0, (rx - internetContainer._lastRx) / dt / 1024)
+            internetContainer.uploadKBps   = Math.max(0, (tx - internetContainer._lastTx) / dt / 1024)
+          }
+        }
+        internetContainer._lastRx = rx
+        internetContainer._lastTx = tx
+        internetContainer._lastMs = now
+      }
+    }
+  }
+
+  Process {
     id: vpnCheck
     command: ["bash", "-c", "ip link show | grep -qE ' (proton|tun)[0-9]*:' && echo 'connected' || echo 'disconnected'"]
     stdout: StdioCollector {
@@ -86,6 +118,7 @@ Rectangle {
     onTriggered: {
       wiredCheck.running = true
       vpnCheck.running = true
+      netStats.running = true
     }
   }
 
@@ -163,6 +196,28 @@ Rectangle {
       color: theme.colors.online
       text: "\u{1F512}"
     }
+
+    Text {
+      id: uploadArrow
+      visible: internetContainer.uploadKBps > internetContainer.bandwidthThreshold
+      anchors.verticalCenter: parent.verticalCenter
+      font.pixelSize: internetContainer.fontSize
+      color: internetContainer.uploadKBps > 10240 ? theme.colors.red
+           : internetContainer.uploadKBps > 2048  ? theme.colors.yellow
+           : theme.colors.green
+      text: "↑"  // ↑
+    }
+
+    Text {
+      id: downloadArrow
+      visible: internetContainer.downloadKBps > internetContainer.bandwidthThreshold
+      anchors.verticalCenter: parent.verticalCenter
+      font.pixelSize: internetContainer.fontSize
+      color: internetContainer.downloadKBps > 10240 ? theme.colors.red
+           : internetContainer.downloadKBps > 2048  ? theme.colors.yellow
+           : theme.colors.green
+      text: "↓"  // ↓
+    }
   }
 
   Rectangle {
@@ -203,5 +258,6 @@ Rectangle {
   Component.onCompleted: {
     wiredCheck.running = true
     vpnCheck.running = true
+    netStats.running = true
   }
 }

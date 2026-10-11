@@ -1,78 +1,38 @@
-import QtQuick
 import Quickshell
-import Quickshell.Io
+import Quickshell.Wayland
+import Quickshell.Widgets
+import QtQuick
+import Quickshell.Hyprland
 import QtQuick.Layouts
 
-// KDE/KWin port: Hyprland exposed workspaces over its own IPC socket.
-// KWin exposes virtual desktops over the standard org.kde.KWin.VirtualDesktopManager
-// D-Bus interface instead, so this polls that (same Process+Timer idiom the
-// rest of this bar already uses for Hypridle) rather than subscribing to a socket.
 RowLayout {
   id: workspaces
   property int fontSize: 18
-  property var desktops: []   // [{id, name}]
-  property string currentId: ""
   spacing: 4
 
-  function refresh() {
-    getState.running = true
-  }
-
-  Process {
-    id: getCurrent
-    command: ["qdbus6", "org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager.current"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        workspaces.currentId = this.text.trim()
-      }
-    }
-  }
-
-  Process {
-    id: getDesktops
-    command: ["sh", "-c",
-      "qdbus6 --literal org.kde.KWin /VirtualDesktopManager org.freedesktop.DBus.Properties.Get org.kde.KWin.VirtualDesktopManager desktops"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        // Output looks like: [Argument: a(uss) {[Argument: (uss) 0, "<uuid>", "Desktop 1"], ...}]
-        var text = this.text
-        var list = []
-        var re = /\(uss\)\s+\d+,\s+"([^"]+)",\s+"([^"]*)"/g
-        var m
-        while ((m = re.exec(text)) !== null) {
-          list.push({ id: m[1], name: m[2] })
-        }
-        workspaces.desktops = list
-      }
-    }
-  }
-
-  Timer {
-    interval: 400
-    running: true
-    repeat: true
-    onTriggered: {
-      getCurrent.running = true
-      getDesktops.running = true
-    }
-  }
-
-  Component.onCompleted: {
-    getCurrent.running = true
-    getDesktops.running = true
-  }
-
   Repeater {
-    model: workspaces.desktops
+    model: 9
     Rectangle {
-      required property var modelData
-      required property int index
-      property bool isActive: modelData.id === workspaces.currentId
+      id: wsRect
 
-      Layout.preferredWidth: isActive ? label.implicitWidth + 20 : label.implicitWidth + 14
-      Layout.preferredHeight: 28
-      radius: isActive ? 14 : 8
-      color: isActive ? theme.colors.selection : theme.colors.surface
+      property var ws: Hyprland.workspaces.values.find(e => e.id === index + 1)
+      property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
+      property bool isOccupied: ws !== undefined && ws !== null
+
+      // Get all clients on this workspace
+      property var wsClients: Hyprland.clients.values.filter(c => c.workspace?.id === index + 1)
+      property bool hasSingleWindow: isOccupied && wsClients.length === 1
+
+      // Look up desktop entry icon for the single window's app class
+      property string appClass: hasSingleWindow ? wsClients[0].class : ""
+      property var desktopEntry: appClass !== "" ? DesktopEntries.heuristicLookup(appClass) : null
+      property string iconName: desktopEntry?.icon ?? ""
+      property bool showIcon: hasSingleWindow && iconName !== ""
+
+      Layout.preferredWidth: isActive ? innerContent.implicitWidth + 16 : (isOccupied ? innerContent.implicitWidth + 11 : innerContent.implicitWidth + 9)
+      Layout.preferredHeight: 22
+      radius: isActive ? 11 : 6
+      color: isActive ? theme.colors.selection : (isOccupied ? theme.colors.surface : "transparent")
       border.width: isActive ? 1 : 0
       border.color: isActive ? theme.colors.blue : "transparent"
 
@@ -80,30 +40,41 @@ RowLayout {
       Behavior on color { ColorAnimation { duration: 150 } }
       Behavior on border.color { ColorAnimation { duration: 150 } }
 
-      Text {
-        id: label
+      Item {
+        id: innerContent
         anchors.centerIn: parent
-        text: " " + (index + 1) + " "
-        color: parent.isActive ? theme.colors.blue : theme.colors.foreground
-        font.bold: parent.isActive
-        font.pixelSize: workspaces.fontSize
+        implicitWidth: wsRect.showIcon ? wsIcon.implicitWidth : workspaceText.implicitWidth
+        implicitHeight: wsRect.showIcon ? wsIcon.implicitHeight : workspaceText.implicitHeight
+
+        IconImage {
+          id: wsIcon
+          anchors.centerIn: parent
+          implicitSize: workspaces.fontSize
+          source: wsRect.iconName
+          visible: wsRect.showIcon
+          opacity: wsRect.showIcon ? 1 : 0
+          Behavior on opacity { NumberAnimation { duration: 100 } }
+        }
+
+        Text {
+          id: workspaceText
+          anchors.centerIn: parent
+          text: " " + (index + 1) + " "
+          color: wsRect.isActive ? theme.colors.blue : (wsRect.isOccupied ? theme.colors.foreground : theme.colors.muted)
+          font.bold: wsRect.isActive
+          font.pixelSize: workspaces.fontSize
+          visible: !wsRect.showIcon
+          opacity: wsRect.showIcon ? 0 : 1
+          Behavior on opacity { NumberAnimation { duration: 100 } }
+        }
       }
 
       MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
-        onClicked: {
-          switchDesktop.command = ["qdbus6", "org.kde.KWin", "/VirtualDesktopManager",
-            "org.freedesktop.DBus.Properties.Set", "org.kde.KWin.VirtualDesktopManager",
-            "current", modelData.id]
-          switchDesktop.running = true
-        }
+        onClicked: Hyprland.dispatch("workspace " + (index + 1))
       }
     }
-  }
-
-  Process {
-    id: switchDesktop
   }
 }

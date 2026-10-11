@@ -3,9 +3,10 @@ import QtQuick
 
 Text {
   required property string format
+  property int fontSize: 18
   id: clock
   color: theme.colors.foreground
-  font.pixelSize: 18
+  font.pixelSize: fontSize
   font.bold: true
   Timer {
     interval: 1000

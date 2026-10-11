@@ -6,158 +6,209 @@ import Quickshell.Io
 import Quickshell.Services.Mpris
 import Quickshell.Widgets
 
-PanelWindow {
-  id: root
-  property int fontSize: 17
+// Desktop, two monitors: DP-1 (BenQ GL2580, right-hand, facing straight) is
+// primary and gets the full bar. HDMI-A-1 (BenQ GL2480, left-hand, angled —
+// YouTube/Discord/Spotify duty) gets a slim strip: workspaces, clock, and
+// now-playing, since that's the media monitor.
+ShellRoot {
+  Variants {
+    model: Quickshell.screens
 
-  anchors.top: true
-  anchors.left: true
-  anchors.right: true
-  implicitHeight: 42
-  WlrLayershell.exclusiveZone: implicitHeight + 4
-  color: "transparent"
+    delegate: Component {
+      PanelWindow {
+        id: root
+        property var modelData
+        screen: modelData
+        property int fontSize: 14
+        property bool isPrimary: modelData.name === "DP-1"
 
-  Theme { id: theme }
+        anchors.top: true
+        anchors.left: true
+        anchors.right: true
+        implicitHeight: 34
+        WlrLayershell.exclusiveZone: implicitHeight + 4
+        color: "transparent"
 
-  ColorQuantizer {
-    id: quantizer
-    onColorsChanged: {
-      console.log("Colors changed:", colors)
-      if (colors && colors.length > 0) {
-        var hex = "#" + colors[0].toString(16).slice(-6)
-        theme.setAccentColor(hex)
-        console.log("Set accent to:", hex)
-      }
-    }
-  }
+        Theme { id: theme }
 
-  Component.onCompleted: {
-    Qt.callLater(loadWallpaperPath)
-  }
-
-  // KDE/KWin port: no hypr/wallpapers dir here -- read Plasma's own current
-  // wallpaper out of its config instead of hardcoding a path.
-  Process {
-    id: wallpaperLookup
-    command: ["sh", "-c",
-      "grep -m1 '^Image=' ~/.config/plasma-org.kde.plasma.desktop-appletsrc | head -1 | cut -d= -f2-"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var path = this.text.trim()
-        if (path) {
-          quantizer.source = path.startsWith("file://") ? path : "file://" + path
+        ColorQuantizer {
+          id: quantizer
+          onColorsChanged: {
+            console.log("Colors changed:", colors)
+            if (colors && colors.length > 0) {
+              var hex = "#" + colors[0].toString(16).slice(-6)
+              theme.setAccentColor(hex)
+              console.log("Set accent to:", hex)
+            }
+          }
         }
-      }
-    }
-  }
 
-  function loadWallpaperPath() {
-    wallpaperLookup.running = true
-  }
+        Component.onCompleted: {
+          Qt.callLater(loadWallpaperPath)
+        }
 
-  // Semi-transparent background with rounded corners
-  Rectangle {
-    id: barBg
-    anchors.fill: parent
-    color: theme.colors.barBg
-    radius: 0
-    border.width: 1
-    border.color: theme.colors.barBorder
+        // Reads this screen's wallpaper straight out of hyprpaper's own
+        // config — falls back to the shared `preload` entry if this output
+        // has no monitor-specific `wallpaper` line.
+        Process {
+          id: wallpaperLookup
+          command: ["sh", "-c",
+            "grep -m1 '^wallpaper = " + root.modelData.name + ",' ~/.config/hypr/hyprpaper.conf | cut -d, -f2- || grep -m1 '^preload = ' ~/.config/hypr/hyprpaper.conf | cut -d= -f2-"]
+          stdout: StdioCollector {
+            onStreamFinished: {
+              var path = this.text.trim()
+              if (path) {
+                quantizer.source = path.startsWith("file://") ? path : "file://" + path
+              }
+            }
+          }
+        }
 
-    // Left section
-    Row {
-      id: leftRow
-      anchors.left: parent.left
-      anchors.leftMargin: 12
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: 10
+        function loadWallpaperPath() {
+          wallpaperLookup.running = true
+        }
 
-      Workplaces {
-        id: workspaces
-        fontSize: root.fontSize
-      }
+        // Semi-transparent background with rounded corners
+        Rectangle {
+          id: barBg
+          anchors.fill: parent
+          color: theme.colors.barBg
+          radius: 0
+          border.width: 1
+          border.color: theme.colors.barBorder
 
-      Rectangle {
-        id: divider
-        width: 1
-        height: 20
-        color: theme.colors.subtle
-        radius: 1
-        anchors.verticalCenter: parent.verticalCenter
-      }
+          // Left section
+          Row {
+            id: leftRow
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 10
 
-      CurrentApplication {
-        id: application
-        fontSize: root.fontSize
-      }
+            Workplaces {
+              id: workspaces
+              fontSize: root.fontSize
+            }
 
-      Rectangle {
-        id: npDivider
-        width: 1
-        height: 20
-        color: theme.colors.subtle
-        radius: 1
-        anchors.verticalCenter: parent.verticalCenter
-        visible: nowPlaying.trackText !== ""
-      }
+            Loader {
+              active: root.isPrimary
+              anchors.verticalCenter: parent.verticalCenter
+              sourceComponent: Rectangle {
+                id: divider
+                width: 1
+                height: 16
+                color: theme.colors.subtle
+                radius: 1
+              }
+            }
 
-      NowPlaying {
-        id: nowPlaying
-      }
-    }
+            Loader {
+              active: root.isPrimary
+              sourceComponent: CurrentApplication {
+                id: application
+                fontSize: root.fontSize
+              }
+            }
 
-    // Center section
-    Item {
-      id: centerSection
-      anchors.centerIn: parent
+            Rectangle {
+              id: npDivider
+              width: 1
+              height: 20
+              color: theme.colors.subtle
+              radius: 1
+              anchors.verticalCenter: parent.verticalCenter
+              visible: nowPlaying.trackText !== ""
+            }
 
-      DateTime {
-        id: datetime
-        format: "HH:mm  ddd dd MMM"
-        anchors.centerIn: parent
-      }
-    }
+            NowPlaying {
+              id: nowPlaying
+              fontSize: root.fontSize
+            }
+          }
 
-    // Right section
-    Item {
-      id: rightSection
-      anchors.right: parent.right
-      anchors.rightMargin: 12
-      anchors.verticalCenter: parent.verticalCenter
-      height: parent.height - 16
+          // Center section
+          Item {
+            id: centerSection
+            anchors.centerIn: parent
 
-      Volume {
-        id: volume
-        anchors.right: brightness.left
-        anchors.rightMargin: 16
-        anchors.verticalCenter: parent.verticalCenter
-        fontSize: root.fontSize
-        colors: theme.colors
-      }
+            DateTime {
+              id: datetime
+              format: "HH:mm  ddd dd MMM"
+              fontSize: root.fontSize
+              anchors.centerIn: parent
+            }
+          }
 
-      Brightness {
-        id: brightness
-        anchors.right: internet.left
-        anchors.rightMargin: 16
-        anchors.verticalCenter: parent.verticalCenter
-        fontSize: root.fontSize
-      }
+          // Right section — primary monitor only. Loader so Volume/Internet
+          // (and their IPC handlers / pollers) aren't even instantiated on
+          // the secondary screen — a plain `visible: false` would still
+          // create them, which double-registers Volume's IPC handler.
+          Loader {
+            id: rightSection
+            active: root.isPrimary
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            height: parent.height - 16
 
-      // Hypridle dropped on KDE: it toggled Hyprland's hypridle daemon,
-      // which doesn't exist here -- powerdevil handles idle/lock natively.
+            sourceComponent: Item {
+              width: volume.width + 16 + sysMonitor.width + 14 + storageMount.width + 14 + llamaServer.width + 14 + idleInhibit.width + 14 + internet.width
+              height: parent.height
 
-      Internet {
-        id: internet
-        anchors.right: battery.left
-        anchors.rightMargin: 14
-        anchors.verticalCenter: parent.verticalCenter
-        fontSize: root.fontSize
-      }
+              Volume {
+                id: volume
+                anchors.right: sysMonitor.left
+                anchors.rightMargin: 16
+                anchors.verticalCenter: parent.verticalCenter
+                fontSize: root.fontSize
+                colors: theme.colors
+              }
 
-      Battery {
-        id: battery
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
+              // Battery/Brightness dropped: this is a desktop tower with no
+              // battery and no backlight device, so both widgets would just
+              // sit there showing "No Battery" / stuck "0%".
+
+              SysMonitor {
+                id: sysMonitor
+                anchors.right: storageMount.left
+                anchors.rightMargin: 14
+                anchors.verticalCenter: parent.verticalCenter
+                fontSize: root.fontSize
+              }
+
+              StorageMount {
+                id: storageMount
+                anchors.right: llamaServer.left
+                anchors.rightMargin: 14
+                anchors.verticalCenter: parent.verticalCenter
+                fontSize: root.fontSize
+              }
+
+              LlamaServer {
+                id: llamaServer
+                anchors.right: idleInhibit.left
+                anchors.rightMargin: 14
+                anchors.verticalCenter: parent.verticalCenter
+                fontSize: root.fontSize
+              }
+
+              IdleInhibit {
+                id: idleInhibit
+                anchors.right: internet.left
+                anchors.rightMargin: 14
+                anchors.verticalCenter: parent.verticalCenter
+                fontSize: root.fontSize
+              }
+
+              Internet {
+                id: internet
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                fontSize: root.fontSize
+              }
+            }
+          }
+        }
       }
     }
   }

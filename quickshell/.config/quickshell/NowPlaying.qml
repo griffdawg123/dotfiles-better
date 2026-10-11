@@ -4,8 +4,8 @@ import Quickshell.Services.Mpris
 
 Item {
   id: nowPlayingRoot
-  property int fontSize: 16
-  height: 30
+  property int fontSize: 13
+  height: 24
   implicitWidth: nowPlayingText.width + 10
 
   // Expose trackText so shell.qml can hide the divider when nothing is playing
@@ -13,7 +13,7 @@ Item {
     var players = Mpris.players.values
     for (var i = 0; i < players.length; i++) {
       var p = players[i]
-      if (p.playbackStatus === MprisPlaybackStatus.Playing) {
+      if (p.playbackState === MprisPlaybackState.Playing) {
         var title = p.trackTitle || ""
         var artists = p.trackArtists || []
         var artist = artists.length > 0 ? artists[0] : ""
@@ -27,7 +27,7 @@ Item {
     var players = Mpris.players.values
     for (var i = 0; i < players.length; i++) {
       var p = players[i]
-      if (p.playbackStatus === MprisPlaybackStatus.Playing) {
+      if (p.playbackState === MprisPlaybackState.Playing) {
         var name = (p.identity || "").toLowerCase()
         if (name.indexOf("spotify") !== -1) return theme.colors.green
         if (name.indexOf("firefox") !== -1 || name.indexOf("zen") !== -1 || name.indexOf("chromium") !== -1) return theme.colors.yellow
@@ -44,7 +44,7 @@ Item {
     font.bold: true
     text: nowPlayingRoot.trackText
     anchors.verticalCenter: parent.verticalCenter
-    width: Math.min(implicitWidth, 240)
+    width: Math.min(implicitWidth, 200)
     elide: Text.ElideRight
   }
 }

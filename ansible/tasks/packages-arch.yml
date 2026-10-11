@@ -5,13 +5,17 @@
   become: true
 
 # yay resolves repo packages first and falls back to the AUR. It must run
-# as the user, not root.
+# as the user and calls sudo itself, which has no terminal here, so sudo
+# reads the password through the askpass helper instead.
 - name: Install yay packages
   ansible.builtin.command:
-    argv: ["yay", "-S", "--needed", "--noconfirm", "{{ item }}"]
+    argv: ["yay", "-S", "--needed", "--noconfirm", "--sudoflags", "-A", "{{ item }}"]
   loop: "{{ yay_packages | default([]) }}"
   register: yay
   changed_when: "'there is nothing to do' not in yay.stdout"
+  environment:
+    SUDO_ASKPASS: "{{ playbook_dir }}/files/askpass.sh"
+    DOTFILES_SUDO_PASS: "{{ sudo_password }}"
 
 # The oh-my-zsh package installs to /usr/share; .zshrc looks in ~/.oh-my-zsh.
 - name: Link oh-my-zsh into home

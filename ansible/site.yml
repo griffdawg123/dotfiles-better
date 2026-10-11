@@ -8,6 +8,7 @@
   hosts: localhost
   vars:
     dotfiles_dir: "{{ playbook_dir | dirname }}"
+    ansible_become_password: "{{ sudo_password }}"
     # Move real files that block a stow package into a dated backup dir
     # instead of stopping. Off by default so nothing moves unannounced.
     dotfiles_backup: false
@@ -15,6 +16,13 @@
   vars_files:
     - vars/hosts.yml
     - vars/packages.yml
+
+  # Prompted here rather than with -K so tools that run sudo themselves
+  # (yay) can get it too, via files/askpass.sh. Leave empty for NOPASSWD.
+  vars_prompt:
+    - name: sudo_password
+      prompt: "sudo password"
+      private: true
 
   pre_tasks:
     - name: Pick the profile for this host

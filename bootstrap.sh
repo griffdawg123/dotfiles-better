@@ -27,6 +27,6 @@ if ! command -v ansible-playbook >/dev/null; then
 fi
 
 cd ansible
-args=(site.yml --ask-become-pass)
+args=(site.yml)
 [[ -n $profile ]] && args+=(-e "profile=$profile")
 exec ansible-playbook "${args[@]}" "$@"

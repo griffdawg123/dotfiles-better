@@ -1,8 +1,20 @@
+# pacman -T lists only requirements nothing installed satisfies, counting
+# provides, so an existing swayosd-git, quickshell-git etc. is kept rather
+# than clashing with the repo package of the same name.
+- name: Find packages not yet provided
+  ansible.builtin.command:
+    argv: "{{ ['pacman', '-T'] + arch_packages + (yay_packages | default([])) }}"
+  register: missing
+  changed_when: false
+  failed_when: missing.rc not in [0, 127]
+  check_mode: false
+
 - name: Install repo packages
   community.general.pacman:
-    name: "{{ arch_packages }}"
+    name: "{{ arch_packages | intersect(missing.stdout_lines) }}"
     state: present
   become: true
+  when: arch_packages | intersect(missing.stdout_lines) | length > 0
 
 # yay resolves repo packages first and falls back to the AUR. It must run
 # as the user and calls sudo itself, which has no terminal here, so sudo
@@ -10,7 +22,7 @@
 - name: Install yay packages
   ansible.builtin.command:
     argv: ["yay", "-S", "--needed", "--noconfirm", "--sudoflags", "-A", "{{ item }}"]
-  loop: "{{ yay_packages | default([]) }}"
+  loop: "{{ yay_packages | default([]) | intersect(missing.stdout_lines) }}"
   register: yay
   changed_when: "'there is nothing to do' not in yay.stdout"
   environment:

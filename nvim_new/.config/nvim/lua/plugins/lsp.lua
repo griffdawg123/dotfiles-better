@@ -9,7 +9,7 @@ return {
 		config = function()
 			require("mason").setup()
 			require("mason-lspconfig").setup({
-				ensure_installed = { "lua_ls", "rust_analyzer" },
+				ensure_installed = { "lua_ls", "rust_analyzer", "gopls" },
 			})
 
 			vim.api.nvim_create_autocmd("LspAttach", {
@@ -21,6 +21,14 @@ return {
 					map("gD", vim.lsp.buf.declaration, "LSP Go to Declaration")
 					map("gr", vim.lsp.buf.references, "LSP References")
 					map("K", vim.lsp.buf.hover, "LSP Hover")
+
+					-- gopls supports LSP folding ranges; fold Go buffers with it
+					-- instead of the Tree-sitter foldexpr used elsewhere (set.lua).
+					local client = vim.lsp.get_client_by_id(args.data.client_id)
+					if client and client.name == "gopls" then
+						local win = vim.api.nvim_get_current_win()
+						vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
+					end
 				end,
 			})
 
@@ -36,6 +44,10 @@ return {
 			})
 
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
+			capabilities.textDocument.foldingRange = {
+				dynamicRegistration = false,
+				lineFoldingOnly = true,
+			}
 			vim.lsp.config("rust_analyzer", {
 				capabilities = capabilities,
 				settings = {
@@ -58,6 +70,9 @@ return {
 						pythonPath = vim.fn.getcwd() .. "/.venv/bin/python",
 					},
 				},
+			})
+			vim.lsp.config("gopls", {
+				capabilities = capabilities,
 			})
 			vim.lsp.config("lua_ls", {
 				settings = {

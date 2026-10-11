@@ -6,9 +6,15 @@ import QtQuick.Layouts
 import Quickshell.Services.Mpris
 import Quickshell.Widgets
 
-PanelWindow {
-  id: root
-  property int fontSize: 17
+ShellRoot {
+  Variants {
+    model: Quickshell.screens
+
+    delegate: PanelWindow {
+      id: root
+      required property var modelData
+      screen: modelData
+      property int fontSize: 17
 
   anchors.top: true
   anchors.left: true
@@ -164,6 +170,8 @@ PanelWindow {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
       }
+    }
+  }
     }
   }
 }

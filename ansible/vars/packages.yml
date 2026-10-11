@@ -77,5 +77,6 @@ hyprland_arch:
   - plasma-integration  # QT_QPA_PLATFORMTHEME=kde
   - breeze
   - ttf-fira-sans
+  - ttf-0xproto-nerd    # alacritty
   - ttf-meslo-nerd
   - noto-fonts-emoji

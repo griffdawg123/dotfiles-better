@@ -19,12 +19,12 @@ RowLayout {
       property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
       property bool isOccupied: ws !== undefined && ws !== null
 
-      // Get all clients on this workspace
-      property var wsClients: Hyprland.clients.values.filter(c => c.workspace?.id === index + 1)
+      // Windows on this workspace
+      property var wsClients: ws ? ws.toplevels.values : []
       property bool hasSingleWindow: isOccupied && wsClients.length === 1
 
-      // Look up desktop entry icon for the single window's app class
-      property string appClass: hasSingleWindow ? wsClients[0].class : ""
+      // Look up desktop entry icon for the single window's app id
+      property string appClass: hasSingleWindow ? (wsClients[0].wayland?.appId ?? "") : ""
       property var desktopEntry: appClass !== "" ? DesktopEntries.heuristicLookup(appClass) : null
       property string iconName: desktopEntry?.icon ?? ""
       property bool showIcon: hasSingleWindow && iconName !== ""
@@ -73,7 +73,10 @@ RowLayout {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
-        onClicked: Hyprland.dispatch("workspace " + (index + 1))
+        // Lua-config Hyprland takes Lua dispatchers over IPC, hyprlang the old syntax.
+        onClicked: Hyprland.dispatch(Hyprland.usingLua
+          ? "hl.dsp.focus({ workspace = " + (index + 1) + " })"
+          : "workspace " + (index + 1))
       }
     }
   }

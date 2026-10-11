@@ -4,13 +4,45 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Io
 import Quickshell.Services.Mpris
+import Quickshell.Services.UPower
 import Quickshell.Widgets
 
-// Desktop, two monitors: DP-1 (BenQ GL2580, right-hand, facing straight) is
-// primary and gets the full bar. HDMI-A-1 (BenQ GL2480, left-hand, angled —
-// YouTube/Discord/Spotify duty) gets a slim strip: workspaces, clock, and
-// now-playing, since that's the media monitor.
+// One bar per screen. The primary screen — the BenQ GL2580 at the desk,
+// whichever machine it's plugged into, otherwise the first screen (laptop
+// undocked) — gets the full bar. Others get a slim strip: workspaces,
+// clock and now-playing.
+//
+// Hardware-dependent widgets (battery, backlight, the llama-server unit)
+// only load where that hardware/service exists, so one file serves every
+// machine.
 ShellRoot {
+  id: shell
+
+  readonly property string primaryModel: "BenQ GL2580"
+
+  readonly property var primaryScreen: {
+    const screens = Quickshell.screens
+    for (let i = 0; i < screens.length; i++) {
+      if (screens[i].model === primaryModel) return screens[i]
+    }
+    return screens.length > 0 ? screens[0] : null
+  }
+
+  property bool hasBacklight: false
+  property bool hasLlamaServer: false
+
+  Process {
+    running: true
+    command: ["sh", "-c", "ls /sys/class/backlight | grep -q . && echo yes"]
+    stdout: StdioCollector { onStreamFinished: shell.hasBacklight = this.text.trim() === "yes" }
+  }
+
+  Process {
+    running: true
+    command: ["sh", "-c", "systemctl --user cat llama-server.service >/dev/null 2>&1 && echo yes"]
+    stdout: StdioCollector { onStreamFinished: shell.hasLlamaServer = this.text.trim() === "yes" }
+  }
+
   Variants {
     model: Quickshell.screens
 
@@ -20,7 +52,7 @@ ShellRoot {
         property var modelData
         screen: modelData
         property int fontSize: 14
-        property bool isPrimary: modelData.name === "DP-1"
+        property bool isPrimary: modelData === shell.primaryScreen
 
         anchors.top: true
         anchors.left: true
@@ -34,41 +66,29 @@ ShellRoot {
         ColorQuantizer {
           id: quantizer
           onColorsChanged: {
-            console.log("Colors changed:", colors)
             if (colors && colors.length > 0) {
-              var hex = "#" + colors[0].toString(16).slice(-6)
-              theme.setAccentColor(hex)
-              console.log("Set accent to:", hex)
+              // QML colours stringify as #rrggbb or #aarrggbb; keep the rgb part.
+              theme.setAccentColor("#" + colors[0].toString().slice(-6))
             }
           }
         }
 
-        Component.onCompleted: {
-          Qt.callLater(loadWallpaperPath)
-        }
+        Component.onCompleted: Qt.callLater(() => wallpaperLookup.running = true)
 
-        // Reads this screen's wallpaper straight out of hyprpaper's own
-        // config — falls back to the shared `preload` entry if this output
-        // has no monitor-specific `wallpaper` line.
+        // Accent colour comes from the wallpaper: the first `path =` in
+        // hyprpaper's config (a single fallback block covers every screen).
         Process {
           id: wallpaperLookup
           command: ["sh", "-c",
-            "grep -m1 '^wallpaper = " + root.modelData.name + ",' ~/.config/hypr/hyprpaper.conf | cut -d, -f2- || grep -m1 '^preload = ' ~/.config/hypr/hyprpaper.conf | cut -d= -f2-"]
+            "sed -n 's/^[[:space:]]*path[[:space:]]*=[[:space:]]*//p' ~/.config/hypr/hyprpaper.conf | head -1 | sed \"s|^~|$HOME|\""]
           stdout: StdioCollector {
             onStreamFinished: {
               var path = this.text.trim()
-              if (path) {
-                quantizer.source = path.startsWith("file://") ? path : "file://" + path
-              }
+              if (path) quantizer.source = "file://" + path
             }
           }
         }
 
-        function loadWallpaperPath() {
-          wallpaperLookup.running = true
-        }
-
-        // Semi-transparent background with rounded corners
         Rectangle {
           id: barBg
           anchors.fill: parent
@@ -94,7 +114,6 @@ ShellRoot {
               active: root.isPrimary
               anchors.verticalCenter: parent.verticalCenter
               sourceComponent: Rectangle {
-                id: divider
                 width: 1
                 height: 16
                 color: theme.colors.subtle
@@ -105,13 +124,11 @@ ShellRoot {
             Loader {
               active: root.isPrimary
               sourceComponent: CurrentApplication {
-                id: application
                 fontSize: root.fontSize
               }
             }
 
             Rectangle {
-              id: npDivider
               width: 1
               height: 20
               color: theme.colors.subtle
@@ -128,83 +145,69 @@ ShellRoot {
 
           // Center section
           Item {
-            id: centerSection
             anchors.centerIn: parent
 
             DateTime {
-              id: datetime
               format: "HH:mm  ddd dd MMM"
               fontSize: root.fontSize
               anchors.centerIn: parent
             }
           }
 
-          // Right section — primary monitor only. Loader so Volume/Internet
-          // (and their IPC handlers / pollers) aren't even instantiated on
-          // the secondary screen — a plain `visible: false` would still
-          // create them, which double-registers Volume's IPC handler.
+          // Right section — primary screen only. Loaders rather than
+          // `visible: false` so widgets that aren't shown don't run their
+          // pollers or register duplicate IPC handlers (volume, brightness).
           Loader {
-            id: rightSection
             active: root.isPrimary
             anchors.right: parent.right
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
-            height: parent.height - 16
 
-            sourceComponent: Item {
-              width: volume.width + 16 + sysMonitor.width + 14 + storageMount.width + 14 + llamaServer.width + 14 + idleInhibit.width + 14 + internet.width
-              height: parent.height
+            sourceComponent: Row {
+              spacing: 14
 
               Volume {
-                id: volume
-                anchors.right: sysMonitor.left
-                anchors.rightMargin: 16
                 anchors.verticalCenter: parent.verticalCenter
                 fontSize: root.fontSize
                 colors: theme.colors
               }
 
-              // Battery/Brightness dropped: this is a desktop tower with no
-              // battery and no backlight device, so both widgets would just
-              // sit there showing "No Battery" / stuck "0%".
+              Loader {
+                active: shell.hasBacklight
+                anchors.verticalCenter: parent.verticalCenter
+                sourceComponent: Brightness { fontSize: root.fontSize }
+              }
 
               SysMonitor {
-                id: sysMonitor
-                anchors.right: storageMount.left
-                anchors.rightMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
                 fontSize: root.fontSize
               }
 
               StorageMount {
-                id: storageMount
-                anchors.right: llamaServer.left
-                anchors.rightMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
                 fontSize: root.fontSize
               }
 
-              LlamaServer {
-                id: llamaServer
-                anchors.right: idleInhibit.left
-                anchors.rightMargin: 14
+              Loader {
+                active: shell.hasLlamaServer
                 anchors.verticalCenter: parent.verticalCenter
-                fontSize: root.fontSize
+                sourceComponent: LlamaServer { fontSize: root.fontSize }
               }
 
               IdleInhibit {
-                id: idleInhibit
-                anchors.right: internet.left
-                anchors.rightMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
                 fontSize: root.fontSize
               }
 
               Internet {
-                id: internet
-                anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 fontSize: root.fontSize
+              }
+
+              Loader {
+                active: UPower.displayDevice.isLaptopBattery
+                anchors.verticalCenter: parent.verticalCenter
+                sourceComponent: Battery { fontSize: root.fontSize }
               }
             }
           }

@@ -29,9 +29,9 @@ RowLayout {
       property string iconName: desktopEntry?.icon ?? ""
       property bool showIcon: hasSingleWindow && iconName !== ""
 
-      Layout.preferredWidth: isActive ? innerContent.implicitWidth + 20 : (isOccupied ? innerContent.implicitWidth + 14 : innerContent.implicitWidth + 12)
-      Layout.preferredHeight: 28
-      radius: isActive ? 14 : 8
+      Layout.preferredWidth: isActive ? innerContent.implicitWidth + 16 : (isOccupied ? innerContent.implicitWidth + 11 : innerContent.implicitWidth + 9)
+      Layout.preferredHeight: 22
+      radius: isActive ? 11 : 6
       color: isActive ? theme.colors.selection : (isOccupied ? theme.colors.surface : "transparent")
       border.width: isActive ? 1 : 0
       border.color: isActive ? theme.colors.blue : "transparent"

@@ -6,7 +6,7 @@
     padding = { x = 10, y = 10 }
 [font]
     normal = { family = "0xProtoNerdFontMono", style = "Regular"}
-    size = 16
+    size = 8
 
 [general]
 import = ["~/.config/alacritty/keybindings.toml", "~/.config/alacritty/zen-colors.toml"]

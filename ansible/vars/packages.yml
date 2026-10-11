@@ -71,7 +71,6 @@ hyprland_arch:
   - polkit-kde-agent
   - plasma-integration  # QT_QPA_PLATFORMTHEME=kde
   - breeze
-  - aichat
   - ttf-fira-sans
   - ttf-meslo-nerd
   - noto-fonts-emoji

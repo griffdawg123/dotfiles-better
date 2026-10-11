@@ -13,7 +13,6 @@ return {
     emoji       = "rofimoji",
     volume      = "pavucontrol",
     bluetooth   = "alacritty --class bluetuith -e bluetuith",
-    llm         = "alacritty --class llm -e aichat",
     bar         = "quickshell",
 
     shot_region = "hyprshot -m region --clipboard-only",

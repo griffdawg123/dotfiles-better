@@ -9,8 +9,8 @@ import Quickshell.Widgets
 
 // One bar per screen. The primary screen — the BenQ GL2580 at the desk,
 // whichever machine it's plugged into, otherwise the first screen (laptop
-// undocked) — gets the full bar. Others get a slim strip: workspaces,
-// clock and now-playing.
+// undocked) — gets the full bar. Others get a slim strip: clock and
+// now-playing.
 //
 // Hardware-dependent widgets (battery, backlight, the llama-server unit)
 // only load where that hardware/service exists, so one file serves every
@@ -105,9 +105,14 @@ ShellRoot {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 10
 
-            Workplaces {
-              id: workspaces
-              fontSize: root.fontSize
+            // Other screens never change workspace (the left desk screen is
+            // always 1, a docked laptop shows the scratchpad), so only the
+            // primary bar gets buttons.
+            Loader {
+              active: root.isPrimary
+              sourceComponent: Workplaces {
+                fontSize: root.fontSize
+              }
             }
 
             Loader {

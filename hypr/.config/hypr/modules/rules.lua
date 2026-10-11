@@ -21,7 +21,7 @@ for _, title in ipairs({ "Save File", "Open File", "Steam - Self Updater" }) do
 end
 
 -- Small centred TUIs launched from keybinds (see modules/programs.lua).
-for class, size in pairs({ llm = { 800, 600 }, bluetuith = { 720, 460 } }) do
+for class, size in pairs({ bluetuith = { 720, 460 } }) do
     hl.window_rule({
         match        = { class = "^(" .. class .. ")$" },
         float        = true,

@@ -48,7 +48,7 @@ sudo stow --dir=~/.local/src/dotfiles --target=/ sddm
 
 `hypr/.config/hypr/` is shared, with differences in `hosts/<profile>/`:
 
-- `init.lua` — workspace-to-monitor pinning, extra autostart, overrides
+- `init.lua` — extra autostart and overrides; the laptop's also handles docking (desk screens get the shared layout from `modules/monitors.lua`: workspace 1 left, 2–10 on the GL2580; the laptop screen shows the scratchpad)
 - `hypridle.conf`, `hyprlock.conf` — the top-level files are symlinks to these
 
 The playbook links `hypr/.config/hypr/host` to the machine's profile

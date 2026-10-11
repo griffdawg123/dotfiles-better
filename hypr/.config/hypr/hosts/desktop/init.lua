@@ -1,11 +1,4 @@
--- Desktop tower: two BenQs, left = 1-5, right (primary) = 6-10.
-
-local monitors = require("modules.monitors")
-
-monitors.pin_workspaces({
-    { monitors.left,    1, 5 },
-    { monitors.primary, 6, 10 },
-})
+-- Desktop tower: two BenQs, workspace layout from modules/monitors.lua.
 
 hl.config({
     misc   = { vrr = 2 },               -- VRR for fullscreen games only

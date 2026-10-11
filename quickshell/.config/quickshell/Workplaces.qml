@@ -11,7 +11,7 @@ RowLayout {
   spacing: 4
 
   Repeater {
-    model: 9
+    model: 10  // SUPER+1..9, SUPER+0 = 10
     Rectangle {
       id: wsRect
 
@@ -50,7 +50,7 @@ RowLayout {
           id: wsIcon
           anchors.centerIn: parent
           implicitSize: workspaces.fontSize
-          source: wsRect.iconName
+          source: Quickshell.iconPath(wsRect.iconName, true)
           visible: wsRect.showIcon
           opacity: wsRect.showIcon ? 1 : 0
           Behavior on opacity { NumberAnimation { duration: 100 } }

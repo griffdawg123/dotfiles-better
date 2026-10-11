@@ -148,6 +148,13 @@ for ws = 1, 10 do
     bind(mod .. " + CTRL + " .. key,  dsp.window.move({ workspace = ws, follow = false }), "Send window to workspace " .. ws)
 end
 
+-- Cycle through workspaces that have windows (empty ones are skipped).
+bind(mod .. " + period",     dsp.focus({ workspace = "e+1" }),      "Next open workspace")
+bind(mod .. " + comma",      dsp.focus({ workspace = "e-1" }),      "Previous open workspace")
+bind(mod .. " + mouse_down", dsp.focus({ workspace = "e+1" }),      "Next open workspace")
+bind(mod .. " + mouse_up",   dsp.focus({ workspace = "e-1" }),      "Previous open workspace")
+bind(mod .. " + slash",      dsp.focus({ workspace = "previous" }), "Back to the last workspace")
+
 -- Scratchpads.
 bind(mod .. " + minus", dsp.window.move({ workspace = "special:magic", follow = false }), "Send window to scratchpad")
 bind(mod .. " + equal", dsp.workspace.toggle_special("magic"),                            "Toggle scratchpad")

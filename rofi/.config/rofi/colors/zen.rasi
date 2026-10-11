@@ -1,0 +1,13 @@
+/**
+ * Zen Colour Scheme for Rofi
+ * Canonical source: ~/.config/zen/zen.sh
+ **/
+
+* {
+    background:     #1c1c1cFF;
+    background-alt: #303030FF;
+    foreground:     #87afafFF;
+    selected:       #87d7afFF;
+    active:         #87af87FF;
+    urgent:         #d78787FF;
+}

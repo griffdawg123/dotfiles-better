@@ -1,3 +1,8 @@
+# === P10K INSTANT PROMPT (must be first — before any output or slow init) ===
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # Path to your Oh My Zsh installation.
 # export ZSH="$HOME/.oh-my-zsh"
 #
@@ -35,9 +40,14 @@ else
 fi
 
 # === BAT ===
-alias cat="bat"
+if command -v bat &>/dev/null; then
+  alias cat="bat"
+elif command -v batcat &>/dev/null; then
+  alias cat="batcat"
+fi
 
 # === FZF ===
+export PATH="$HOME/.fzf/bin:$PATH"
 source <(fzf --zsh)
 export FZF_DEFAULTCOMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULTCOMMAND"
@@ -73,15 +83,37 @@ eval "$(zoxide init zsh)"
 alias cd="z"
 
 # === tmuxifier ===
-export PATH="$HOME/.tmux/plugins/tmuxifier/bin:$PATH"
-eval "$(tmuxifier init -)"
+if [[ -x "$HOME/.tmux/plugins/tmuxifier/bin/tmuxifier" ]]; then
+  export PATH="$HOME/.tmux/plugins/tmuxifier/bin:$PATH"
+elif [[ -x "$HOME/.tmuxifier/bin/tmuxifier" ]]; then
+  export PATH="$HOME/.tmuxifier/bin:$PATH"
+fi
+if command -v tmuxifier &>/dev/null; then
+  eval "$(tmuxifier init -)"
+fi
 
 export PATH=$PATH:$HOME/.spicetify:$HOME/.local/bin
 export PATH=$PATH:$HOME/.cargo/bin
 
+# === NVM (lazy-loaded for fast startup) ===
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# Add nvm's node/npm to PATH immediately without loading nvm itself
+# (lets you run node/npm directly; nvm CLI is loaded on first use)
+if [[ -d "$NVM_DIR" ]]; then
+  # Put the default node version on PATH without sourcing nvm
+  export PATH="$NVM_DIR/versions/node/$(cat $NVM_DIR/alias/default 2>/dev/null)/bin:$PATH"
+fi
+# Lazy-load nvm: only initialize when nvm/node/npm/npx are actually called
+_load_nvm() {
+  unset -f nvm node npm npx yarn pnpm 2>/dev/null
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+}
+nvm()  { _load_nvm; nvm "$@"; }
+# Uncomment if you want node/npm/npx to also trigger full nvm load:
+# node() { _load_nvm; node "$@"; }
+# npm()  { _load_nvm; npm "$@"; }
+# npx()  { _load_nvm; npx "$@"; }
 
 export GOPATH="$HOME/go"
 
@@ -89,10 +121,11 @@ export PATH="$GOPATH/bin:$PATH"
 
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
-[[ -f /home/griffdawg/.dart-cli-completion/zsh-config.zsh ]] && . /home/griffdawg/.dart-cli-completion/zsh-config.zsh || true
+[[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ]] && . "$HOME/.dart-cli-completion/zsh-config.zsh" || true
 ## [/Completion]
 
-eval "$(starship init zsh)"
+# === WINDOWS INTEROP ===
+export PATH="$PATH:/mnt/c/Windows/System32"  # clip.exe
 
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
@@ -102,41 +135,38 @@ bindkey -e
 bindkey -s "^b" "tmux attach || tmux new\n"
 
 export BEMOJI_PICKER_CMD="$(which fuzzel) -d"
-# --- LLM Modal Shell ---
-export LLM_MODE=0
-
-toggle-llm-mode() {
-  if [[ $LLM_MODE -eq 0 ]]; then
-    export LLM_MODE=1
-    export OLD_PROMPT_LLM=$PROMPT
-    PROMPT="%F{cyan}🤖 %f%B%F{green}LLM%f%b %F{blue}%~%f > "
-  else
-    export LLM_MODE=0
-    PROMPT=$OLD_PROMPT_LLM
-  fi
-  zle reset-prompt
-}
-zle -N toggle-llm-mode
-bindkey '^G' toggle-llm-mode
-
-llm-accept-line() {
-  if [[ $LLM_MODE -eq 1 && -n $BUFFER ]]; then
-    # Store query to show in history
-    local query=$BUFFER
-    # Move to new line and clear buffer for display
-    echo ""
-
-    # Run the tool with the key from your aichat config
-    GEMINI_API_KEY="AIzaSyBMBmGHdOn5Krv6_gZaYVYOZTUn_sT2hXk" \
-    llm-shell --prompt "$query"
-
-    # Clear buffer and reset
-    BUFFER=""
-    zle reset-prompt
-    else
-      zle .accept-line
-    fi
-}
-zle -N accept-line llm-accept-line
 # -----------------------
 
+
+# === OH MY ZSH + P10K SETUP ===
+# Oh My Zsh setup (if available)
+if [[ -d "$HOME/.oh-my-zsh" ]]; then
+  export ZSH="$HOME/.oh-my-zsh"
+  ZSH_THEME="powerlevel10k/powerlevel10k"
+  ZSH_DISABLE_COMPFIX=true  # Skip slow compaudit on startup
+
+  # Add to existing plugins or create array
+  if [[ -z "${plugins[*]}" ]]; then
+    plugins=(git)
+  fi
+  [[ "${plugins[*]}" =~ "zsh-autosuggestions" ]] || plugins+=(zsh-autosuggestions)
+  [[ "${plugins[*]}" =~ "zsh-syntax-highlighting" ]] || plugins+=(zsh-syntax-highlighting)
+
+  source $ZSH/oh-my-zsh.sh
+
+  # Load P10k configuration from dotfiles
+  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+  # Enhanced auto-suggestions (muted)
+  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240,italic'
+  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+  bindkey '^ ' autosuggest-accept  # Ctrl+Space
+
+else
+  # Fallback to starship if no Oh My Zsh
+  eval "$(starship init zsh)"
+fi
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/griffdawg/.local/bin:$PATH"

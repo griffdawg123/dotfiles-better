@@ -36,7 +36,7 @@ PanelWindow {
   }
 
   function loadWallpaperPath() {
-    quantizer.source = "file:///home/griffdawg/Downloads/wallpaper.jpg"
+    quantizer.source = "file:///home/griffdawg/.config/hypr/wallpapers/wallpaper.jpg"
   }
 
   // Semi-transparent background with rounded corners
@@ -82,6 +82,7 @@ PanelWindow {
         color: theme.colors.subtle
         radius: 1
         anchors.verticalCenter: parent.verticalCenter
+        visible: nowPlaying.trackText !== ""
       }
 
       NowPlaying {
@@ -96,7 +97,7 @@ PanelWindow {
 
       DateTime {
         id: datetime
-        format: "HH:mm:ss dd/MM"
+        format: "HH:mm  ddd dd MMM"
         anchors.centerIn: parent
       }
     }
@@ -128,6 +129,22 @@ PanelWindow {
 
       Hypridle {
         id: hypridle
+        anchors.right: sysMonitor.left
+        anchors.rightMargin: 14
+        anchors.verticalCenter: parent.verticalCenter
+        fontSize: root.fontSize
+      }
+
+      SysMonitor {
+        id: sysMonitor
+        anchors.right: storageMount.left
+        anchors.rightMargin: 14
+        anchors.verticalCenter: parent.verticalCenter
+        fontSize: root.fontSize
+      }
+
+      StorageMount {
+        id: storageMount
         anchors.right: internet.left
         anchors.rightMargin: 14
         anchors.verticalCenter: parent.verticalCenter

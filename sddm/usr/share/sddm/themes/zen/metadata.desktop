@@ -1,0 +1,6 @@
+[SddmGreeterTheme]
+Name=Zen
+Description=Minimal Zen-themed SDDM greeter
+Author=griffdawg
+Type=sddm-theme
+Version=1.0

@@ -1,0 +1,114 @@
+/**
+ * Zen Power Menu
+ * Colour source: ~/.config/zen/zen.sh → ~/.config/rofi/colors/zen.rasi
+ **/
+
+configuration {
+    show-icons: false;
+}
+
+@import "shared/colors.rasi"
+@import "shared/fonts.rasi"
+
+/*****----- Main Window -----*****/
+window {
+    transparency:      "real";
+    location:          center;
+    anchor:            center;
+    fullscreen:        false;
+    width:             760px;
+    enabled:           true;
+    margin:            0px;
+    padding:           28px;
+    border:            1px solid;
+    border-radius:     12px;
+    border-color:      @selected;
+    cursor:            "default";
+    background-color:  @background;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    enabled:           true;
+    spacing:           18px;
+    margin:            0px;
+    padding:           0px;
+    border:            0px solid;
+    border-radius:     0px;
+    background-color:  transparent;
+    children:          [ "message", "listview" ];
+}
+
+/*****----- Message (uptime) -----*****/
+message {
+    enabled:           true;
+    margin:            0px;
+    padding:           10px 16px;
+    border:            0px solid;
+    border-radius:     8px;
+    background-color:  @background-alt;
+    text-color:        @foreground;
+}
+textbox {
+    background-color:  inherit;
+    text-color:        inherit;
+    vertical-align:    0.5;
+    horizontal-align:  0.5;
+    placeholder-color: @foreground;
+    blink:             true;
+    markup:            true;
+}
+error-message {
+    padding:           12px;
+    border:            0px solid;
+    border-radius:     8px;
+    background-color:  @background;
+    text-color:        @foreground;
+}
+
+/*****----- Listview -----*****/
+listview {
+    enabled:           true;
+    columns:           5;
+    lines:             1;
+    cycle:             true;
+    dynamic:           true;
+    scrollbar:         false;
+    layout:            vertical;
+    fixed-height:      true;
+    fixed-columns:     true;
+    spacing:           14px;
+    margin:            0px;
+    padding:           0px;
+    border:            0px solid;
+    background-color:  transparent;
+    text-color:        @foreground;
+    cursor:            "default";
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled:           true;
+    spacing:           0px;
+    margin:            0px;
+    padding:           42px 10px;
+    border:            1px solid;
+    border-radius:     10px;
+    border-color:      @background-alt;
+    background-color:  @background-alt;
+    text-color:        @foreground;
+    cursor:            pointer;
+}
+element-text {
+    font:              "0xProto Nerd Font Mono Bold 28";
+    background-color:  transparent;
+    text-color:        inherit;
+    cursor:            inherit;
+    vertical-align:    0.5;
+    horizontal-align:  0.5;
+}
+element selected.normal {
+    background-color:  var(selected);
+    text-color:        var(background);
+    border-color:      var(selected);
+}

@@ -1,0 +1,34 @@
+# Zen palette for Alacritty
+# Mirrors ~/.config/zen/zen.sh — edit that file and keep this in sync.
+
+[colors.primary]
+background = "#1c1c1c"
+foreground = "#87afaf"
+
+[colors.cursor]
+text   = "#1c1c1c"
+cursor = "#878787"
+
+[colors.selection]
+text       = "#87afaf"
+background = "#3a3a3a"
+
+[colors.normal]
+black   = "#444444"
+red     = "#d78787"
+green   = "#87af87"
+yellow  = "#d7af5f"
+blue    = "#87afaf"
+magenta = "#87d7af"
+cyan    = "#87d7af"
+white   = "#878787"
+
+[colors.bright]
+black   = "#444444"
+red     = "#d78787"
+green   = "#87d7af"
+yellow  = "#d7af5f"
+blue    = "#87afaf"
+magenta = "#87d7af"
+cyan    = "#87d7af"
+white   = "#b0b0b0"

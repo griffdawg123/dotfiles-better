@@ -1,0 +1,7 @@
+selector = rofi
+action = type
+typer = wtype
+clipboarder = wl-copy
+max-recent = 10
+selector-args = -theme ~/.config/rofi/emoji-picker/zen.rasi
+prompt =  

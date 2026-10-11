@@ -1,10 +1,10 @@
 -- Keybinds. List them live with `hyprctl binds`.
 --
--- Layout follows the laptop's muscle memory:
---   SUPER + arrows/H/L          previous/next workspace
---   SUPER + ALT + arrows/hjkl   move focus
---   SUPER + CTRL + arrows/hjkl  move window within the workspace
---   SUPER + SHIFT + arrows/H/L  move window to previous/next workspace
+--   SUPER + hjkl/arrows               move focus (crosses monitors at the edge)
+--   SUPER + CTRL + hjkl/arrows        move window
+--   SUPER + CTRL + SHIFT + hjkl/arrows resize window
+--   SUPER + 0-9                       go to workspace (SHIFT: take window,
+--                                     CTRL: send window and stay)
 
 local p   = require("modules.programs")
 local dsp = hl.dsp
@@ -95,9 +95,9 @@ bind(mod .. " + V", dsp.window.float(),                            "Toggle float
 bind(mod .. " + M", dsp.window.fullscreen({ mode = "maximized" }), "Toggle maximize")
 bind(mod .. " + F", dsp.window.fullscreen(),                       "Toggle fullscreen")
 bind(mod .. " + Y", dsp.window.pin(),                              "Pin window to all workspaces")
-bind(mod .. " + J", dsp.layout("togglesplit"),                     "Toggle split direction")
+bind(mod .. " + S", dsp.layout("togglesplit"),                     "Toggle split direction")
 
-bind(mod .. " + K",   dsp.group.toggle(), "Toggle window group")
+bind(mod .. " + T",   dsp.group.toggle(), "Toggle window group")
 bind(mod .. " + Tab", dsp.group.next(),   "Next window in group")
 
 bind("ALT + Tab", function()
@@ -110,8 +110,8 @@ bind(mod .. " + mouse:273", dsp.window.resize(), "Resize window", { mouse = true
 
 local STEP = 15
 local dirs = {
-    { arrow = "left",  vim = "h", dir = "left",  dx = -STEP, dy = 0,     ws = "-1" },
-    { arrow = "right", vim = "l", dir = "right", dx =  STEP, dy = 0,     ws = "+1" },
+    { arrow = "left",  vim = "h", dir = "left",  dx = -STEP, dy = 0 },
+    { arrow = "right", vim = "l", dir = "right", dx =  STEP, dy = 0 },
     { arrow = "up",    vim = "k", dir = "up",    dx = 0,     dy = -STEP },
     { arrow = "down",  vim = "j", dir = "down",  dx = 0,     dy =  STEP },
 }
@@ -120,15 +120,9 @@ for _, d in ipairs(dirs) do
     local resize = dsp.window.resize({ x = d.dx, y = d.dy, relative = true })
 
     for _, key in ipairs({ d.arrow, d.vim }) do
-        bind(mod .. " + ALT + " .. key,          dsp.focus({ direction = d.dir }),       "Focus " .. d.dir)
+        bind(mod .. " + " .. key,                dsp.focus({ direction = d.dir }),       "Focus " .. d.dir)
         bind(mod .. " + CTRL + " .. key,         dsp.window.move({ direction = d.dir }), "Move window " .. d.dir)
         bind(mod .. " + CTRL + SHIFT + " .. key, resize, "Resize " .. d.dir, { repeating = true })
-
-        -- Left/right also step through workspaces; bare SUPER+J/K are taken.
-        if d.ws then
-            bind(mod .. " + " .. key,           dsp.focus({ workspace = d.ws }),                     "Workspace " .. d.ws)
-            bind(mod .. " + SHIFT + " .. key,   dsp.window.move({ workspace = d.ws, follow = true }), "Move window to workspace " .. d.ws)
-        end
     end
 end
 
@@ -153,12 +147,6 @@ for ws = 1, 10 do
     bind(mod .. " + SHIFT + " .. key, dsp.window.move({ workspace = ws, follow = true }),  "Move window to workspace " .. ws)
     bind(mod .. " + CTRL + " .. key,  dsp.window.move({ workspace = ws, follow = false }), "Send window to workspace " .. ws)
 end
-
-bind(mod .. " + mouse_down", dsp.focus({ workspace = "e+1" }),      "Next open workspace")
-bind(mod .. " + mouse_up",   dsp.focus({ workspace = "e-1" }),      "Previous open workspace")
-bind(mod .. " + period",     dsp.focus({ workspace = "e+1" }),      "Next open workspace")
-bind(mod .. " + comma",      dsp.focus({ workspace = "e-1" }),      "Previous open workspace")
-bind(mod .. " + slash",      dsp.focus({ workspace = "previous" }), "Last used workspace")
 
 -- Scratchpads.
 bind(mod .. " + minus", dsp.window.move({ workspace = "special:magic", follow = false }), "Send window to scratchpad")

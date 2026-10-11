@@ -1,0 +1,22 @@
+os_family: arch
+zsh_prompt: starship
+
+arch_packages: "{{ cli_arch + hyprland_arch + ['blueman', 'fprintd'] }}"
+yay_packages: [bluetuith]
+
+stow_packages:
+  - zsh
+  - starship
+  - tmux
+  - fzf
+  - nvim_new
+  - zen
+  - alacritty
+  - ghostty
+  - bluetuith
+  - rofi
+  - quickshell
+  - hypr
+  - tschuss
+  - spotify-wayland
+  - BetterDiscord

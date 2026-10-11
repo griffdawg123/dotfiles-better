@@ -7,31 +7,55 @@ Colour scheme throughout is **Zen** (dark charcoal, slate-teal, seafoam accents)
 
 ## Initial setup
 
-### Prerequisites
+One command per machine. It installs ansible if needed, then installs
+packages and stows the right dotfiles for this machine's profile:
 
 ```bash
-sudo pacman -S git stow
+git clone git@github.com:griffdawg123/dotfiles-better.git ~/.local/src/dotfiles
+~/.local/src/dotfiles/bootstrap.sh            # profile from hostname
+~/.local/src/dotfiles/bootstrap.sh laptop     # or name it
+~/.local/src/dotfiles/bootstrap.sh -- --check # dry run
 ```
 
-### Clone and deploy
+| Profile | Machine | Prompt |
+|---|---|---|
+| `desktop` | CachyOS tower, two BenQs | powerlevel10k |
+| `laptop` | CachyOS laptop, docks to the same BenQs | starship |
+| `work` | Ubuntu under WSL — shell and editor only | starship |
 
-```bash
-git clone git@github.com:griffdawg123/dotfiles-better.git ~/.dotfiles
-cd ~/.dotfiles
+- **Hostname → profile** mapping: `ansible/vars/hosts.yml`
+- **Packages and stow list** per profile: `ansible/vars/profiles/<profile>.yml`
+- **Existing files in the way** stop the run with a list. Links that already
+  point into this repo are replaced automatically; for real files, move them
+  or rerun with `./bootstrap.sh -- -e dotfiles_backup=true` to move them to
+  `~/.dotfiles-backup/<timestamp>/`.
+
+On WSL, pin the hostname so the profile lookup is stable, then restart WSL:
+
+```ini
+# /etc/wsl.conf
+[network]
+hostname = work-wsl
 ```
 
-Most packages stow into `~`:
+The SDDM theme targets the system root and is not handled by the playbook:
 
 ```bash
-stow alacritty bluetuith fzf ghostty hypr nvim_new quickshell \
-     rofi sddm starship tmux tschuss zen zsh spotify-wayland \
-     BetterDiscord
+sudo stow --dir=~/.local/src/dotfiles --target=/ sddm
 ```
 
-The SDDM theme targets the system root (requires sudo):
+### Per-machine Hyprland config
+
+`hypr/.config/hypr/` is shared, with differences in `hosts/<profile>/`:
+
+- `init.lua` — workspace-to-monitor pinning, extra autostart, overrides
+- `hypridle.conf`, `hyprlock.conf` — the top-level files are symlinks to these
+
+The playbook links `hypr/.config/hypr/host` to the machine's profile
+(gitignored). Validate changes without reloading:
 
 ```bash
-sudo stow --dir=~/.dotfiles --target=/ sddm
+Hyprland --verify-config -c ~/.config/hypr/hyprland.lua
 ```
 
 ---
@@ -42,8 +66,8 @@ sudo stow --dir=~/.dotfiles --target=/ sddm
 
 | Package | Configures | Required packages |
 |---|---|---|
-| `hypr` | Hyprland WM, keybinds, window rules, hypridle, hyprlock, hyprpaper | `hyprland` `hyprpaper` `hypridle` `hyprlock` `hyprshot` `swaync` `swayosd` `blueman` `brightnessctl` `pavucontrol` `aichat` |
-| `quickshell` | Wayland status bar (QML) — workspaces, clock, battery, volume, brightness, media | `quickshell` |
+| `hypr` | Hyprland (Lua config) — keybinds, window rules, per-host monitors; hypridle, hyprlock, hyprpaper | see `ansible/vars/packages.yml` |
+| `quickshell` | Wayland status bar (QML) — full bar on the GL2580 (or the only screen), slim bar elsewhere; battery/brightness only where present | `quickshell` |
 | `sddm` | Login manager — Zen-themed QML greeter with clock, fingerprint support, keyring unlock | `sddm` `qt5-quickcontrols2` `fprintd` `gnome-keyring` |
 | `alacritty` | Terminal emulator — Zen colours, 0xProto Nerd Font, transparent background | `alacritty` `ttf-0xproto-nerd` |
 | `rofi` | App launcher (`Super+R`), power menu (`Super+X`), emoji picker (`Super+E`), game launcher (`Super+G`) | `rofi-wayland` `rofi-games`(AUR) `rofimoji` `wtype` `wl-clipboard` |
@@ -56,7 +80,8 @@ sudo stow --dir=~/.dotfiles --target=/ sddm
 |---|---|---|
 | `zsh` | Zsh config — aliases, PATH, tool integrations | `zsh` `bat` `fd` `eza` `zoxide` `fzf` `nvm` |
 | `tmux` | tmux config and plugins (TPM, tmux-fzf, tmuxifier, vim-tmux-navigator) | `tmux` — run `prefix + I` after first launch to install plugins |
-| `starship` | Shell prompt — git status, language versions, battery, command duration | `starship` |
+| `starship` | Shell prompt (laptop, work) — git status, language versions, battery, command duration | `starship` |
+| `p10k` | Powerlevel10k prompt (desktop) — used when `~/.oh-my-zsh` exists | `oh-my-zsh` `zsh-theme-powerlevel10k` |
 | `fzf` | fzf-git integration scripts sourced by `.zshrc` | `fzf` `git` |
 | `nvim_new` | Neovim config (lazy.nvim) — **currently active** | `neovim` |
 
@@ -79,9 +104,8 @@ These packages remain in the repo for reference but are not part of the active s
 | `picom` | X11 compositor |
 | `polybar` | X11 status bar |
 | `waybar` | Wayland status bar, superseded by `quickshell` |
-| `dunst` | Notification daemon, superseded by `swaync` |
+| `dunst` | Notification daemon, superseded by `mako` |
 | `fuzzel` | App launcher, superseded by `rofi` |
-| `p10k` | Powerlevel10k prompt, superseded by `starship` |
 | `nvim_lazy` `nvim_packer` | Old Neovim configs, superseded by `nvim_new` |
 
 ---
@@ -108,7 +132,7 @@ Fingerprint and keyring unlock are handled by `/etc/pam.d/sddm` — ensure
 The canonical palette lives in `zen/.config/zen/zen.sh` and is sourced
 by scripts that need hex values. Mirrors exist in:
 
-- `hypr/.config/hypr/colors.conf` — rgba format for Hyprland borders
+- `hypr/.config/hypr/modules/palette.lua` — rgba format for Hyprland borders
 - `alacritty/.config/alacritty/zen-colors.toml` — Alacritty colour scheme
 - `quickshell/.config/quickshell/Theme.qml` — QML colour properties
 - `rofi/.config/rofi/colors/zen.rasi` — Rofi colour variables

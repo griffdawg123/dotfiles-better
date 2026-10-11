@@ -1,0 +1,55 @@
+# Set up this machine: packages, then dotfiles.
+#
+#   ./bootstrap.sh                    # profile from hostname (vars/hosts.yml)
+#   ./bootstrap.sh laptop             # or name the profile explicitly
+#   ./bootstrap.sh -- --check --diff  # dry run (extra args go to ansible)
+
+- name: Configure this machine
+  hosts: localhost
+  vars:
+    dotfiles_dir: "{{ playbook_dir | dirname }}"
+    # Move real files that block a stow package into a dated backup dir
+    # instead of stopping. Off by default so nothing moves unannounced.
+    dotfiles_backup: false
+    dotfiles_backup_dir: "{{ ansible_facts.env.HOME }}/.dotfiles-backup/{{ ansible_facts.date_time.iso8601_basic_short }}"
+  vars_files:
+    - vars/hosts.yml
+    - vars/packages.yml
+
+  pre_tasks:
+    - name: Pick the profile for this host
+      ansible.builtin.set_fact:
+        profile: "{{ profile | default(host_profiles[ansible_facts.hostname] | default('')) }}"
+      tags: [always]
+
+    - name: Stop if this host has no profile
+      ansible.builtin.fail:
+        msg: >-
+          No profile for host '{{ ansible_facts.hostname }}'. Add it to
+          ansible/vars/hosts.yml, or run ./bootstrap.sh <profile>.
+      when: profile == ''
+      tags: [always]
+
+    - name: Load the {{ profile }} profile
+      ansible.builtin.include_vars: "vars/profiles/{{ profile }}.yml"
+      tags: [always]
+
+  tasks:
+    - name: Install packages
+      ansible.builtin.include_tasks:
+        file: "tasks/packages-{{ os_family }}.yml"
+        apply: { tags: [packages] }
+      tags: [packages]
+
+    - name: Link dotfiles
+      ansible.builtin.include_tasks:
+        file: tasks/dotfiles.yml
+        apply: { tags: [dotfiles] }
+      tags: [dotfiles]
+
+    - name: Use zsh as the login shell
+      ansible.builtin.user:
+        name: "{{ ansible_facts.user_id }}"
+        shell: /usr/bin/zsh
+      become: true
+      tags: [shell]

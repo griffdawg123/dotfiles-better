@@ -1,0 +1,8 @@
+# Setup scripts and docs live in the package but don't belong in $HOME.
+# (This file replaces stow's default ignore list, so README is repeated.)
+^/README.*
+^/install\.sh
+^/p10k-install\.zsh
+^/setup-addon\.sh
+^/stow\.sh
+^/\.p10k\.zsh\.bak

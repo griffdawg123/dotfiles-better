@@ -1,0 +1,18 @@
+os_family: arch
+zsh_prompt: p10k
+
+arch_packages: "{{ cli_arch + hyprland_arch + ['network-manager-applet'] }}"
+yay_packages: "{{ p10k_arch_yay }}"
+
+stow_packages:
+  - zsh
+  - p10k
+  - starship
+  - tmux
+  - fzf
+  - nvim_new
+  - zen
+  - alacritty
+  - rofi
+  - quickshell
+  - hypr

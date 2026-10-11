@@ -1,0 +1,23 @@
+- name: Install repo packages
+  community.general.pacman:
+    name: "{{ arch_packages }}"
+    state: present
+  become: true
+
+# yay resolves repo packages first and falls back to the AUR. It must run
+# as the user, not root.
+- name: Install yay packages
+  ansible.builtin.command:
+    argv: ["yay", "-S", "--needed", "--noconfirm", "{{ item }}"]
+  loop: "{{ yay_packages | default([]) }}"
+  register: yay
+  changed_when: "'there is nothing to do' not in yay.stdout"
+
+# The oh-my-zsh package installs to /usr/share; .zshrc looks in ~/.oh-my-zsh.
+- name: Link oh-my-zsh into home
+  ansible.builtin.file:
+    src: /usr/share/oh-my-zsh
+    dest: "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
+    state: link
+    force: false
+  when: zsh_prompt == 'p10k'

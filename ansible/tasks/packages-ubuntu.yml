@@ -1,0 +1,110 @@
+- name: Install apt packages
+  ansible.builtin.apt:
+    name: "{{ apt_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+
+# eza is only packaged from Ubuntu 24.04 on; .zshrc's ls alias needs it.
+- name: Install eza where apt has it
+  ansible.builtin.apt:
+    name: eza
+    state: present
+  become: true
+  when: ansible_facts.distribution_major_version | int >= 24
+
+- name: Create ~/.local/bin and ~/.local/opt
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: [bin, opt]
+
+# Ubuntu names fd as fdfind.
+- name: Link fd to fdfind
+  ansible.builtin.file:
+    src: /usr/bin/fdfind
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin/fd"
+    state: link
+
+# --- Neovim: latest stable release (apt's is too old for lazy.nvim/mason) ---
+
+- name: Check for Neovim
+  ansible.builtin.stat:
+    path: "{{ ansible_facts.env.HOME }}/.local/opt/nvim-linux-x86_64/bin/nvim"
+  register: nvim
+
+- name: Install Neovim release
+  ansible.builtin.unarchive:
+    src: https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+    dest: "{{ ansible_facts.env.HOME }}/.local/opt"
+    remote_src: true
+  when: not nvim.stat.exists
+
+- name: Link nvim onto PATH
+  ansible.builtin.file:
+    src: "{{ ansible_facts.env.HOME }}/.local/opt/nvim-linux-x86_64/bin/nvim"
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin/nvim"
+    state: link
+
+# --- fzf: release binary in ~/.fzf/bin, which .zshrc puts first on PATH ---
+
+- name: Check for fzf
+  ansible.builtin.stat:
+    path: "{{ ansible_facts.env.HOME }}/.fzf/bin/fzf"
+  register: fzf
+
+- name: Install fzf release
+  when: not fzf.stat.exists
+  block:
+    - name: Look up the latest fzf release
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/junegunn/fzf/releases/latest
+      register: fzf_release
+
+    - name: Create ~/.fzf/bin
+      ansible.builtin.file:
+        path: "{{ ansible_facts.env.HOME }}/.fzf/bin"
+        state: directory
+        mode: "0755"
+
+    - name: Unpack fzf
+      ansible.builtin.unarchive:
+        src: >-
+          {{ fzf_release.json.assets
+             | selectattr('name', 'search', 'linux_amd64\.tar\.gz$')
+             | map(attribute='browser_download_url') | first }}
+        dest: "{{ ansible_facts.env.HOME }}/.fzf/bin"
+        remote_src: true
+
+# --- prompt: starship release, or oh-my-zsh + powerlevel10k ---
+
+- name: Install starship release
+  ansible.builtin.unarchive:
+    src: https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin"
+    remote_src: true
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/starship"
+  when: zsh_prompt == 'starship'
+
+- name: Install oh-my-zsh, powerlevel10k and plugins
+  when: zsh_prompt == 'p10k'
+  block:
+    - name: Clone oh-my-zsh
+      ansible.builtin.git:
+        repo: https://github.com/ohmyzsh/ohmyzsh.git
+        dest: "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
+        depth: 1
+        update: false
+
+    - name: Clone powerlevel10k and zsh plugins
+      ansible.builtin.git:
+        repo: "https://github.com/{{ item.repo }}.git"
+        dest: "{{ ansible_facts.env.HOME }}/.oh-my-zsh/custom/{{ item.dest }}"
+        depth: 1
+        update: false
+      loop:
+        - { repo: romkatv/powerlevel10k,             dest: themes/powerlevel10k }
+        - { repo: zsh-users/zsh-autosuggestions,     dest: plugins/zsh-autosuggestions }
+        - { repo: zsh-users/zsh-syntax-highlighting, dest: plugins/zsh-syntax-highlighting }

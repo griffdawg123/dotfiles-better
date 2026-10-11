@@ -1,0 +1,14 @@
+# Work machine: Ubuntu under WSL. Shell and editor only — no desktop.
+# Keep anything work-specific (internal hosts, work git identity, tokens)
+# out of this public repo; put it in untracked local files instead.
+os_family: ubuntu
+zsh_prompt: starship
+
+apt_packages: "{{ cli_ubuntu }}"
+
+stow_packages:
+  - zsh
+  - starship
+  - tmux
+  - fzf
+  - nvim_new

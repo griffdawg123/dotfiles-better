@@ -1,0 +1,6 @@
+# Always configures the machine it runs on. Which profile applies is
+# decided from the hostname in vars/hosts.yml.
+all:
+  hosts:
+    localhost:
+      ansible_connection: local

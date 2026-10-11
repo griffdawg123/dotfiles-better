@@ -1,0 +1,22 @@
+# Linked before stowing hypr, so ~/.config/hypr never appears without it.
+- name: Link this machine's Hyprland host config
+  ansible.builtin.file:
+    src: "hosts/{{ profile }}"
+    dest: "{{ dotfiles_dir }}/hypr/.config/hypr/host"
+    state: link
+  when: "'hypr' in stow_packages"
+
+- name: Stow {{ stow_packages | length }} packages
+  ansible.builtin.command:
+    argv:
+      - "{{ playbook_dir }}/files/stow-package.sh"
+      - "{{ dotfiles_dir }}"
+      - "{{ item }}"
+      - "{{ dotfiles_backup_dir if dotfiles_backup | bool else '' }}"
+  loop: "{{ stow_packages }}"
+  register: stow
+  changed_when: "'CHANGED' in stow.stdout"
+  # Dry runs (--check) still simulate stow; the script makes no changes then.
+  check_mode: false
+  environment:
+    STOW_DRY_RUN: "{{ '1' if ansible_check_mode else '' }}"

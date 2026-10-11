@@ -1,0 +1,77 @@
+# Package sets, combined per profile in vars/profiles/*.yml.
+
+# Shell + editor tooling, every machine. Arch names.
+cli_arch:
+  - base-devel        # nvim-treesitter compiles parsers
+  - git
+  - stow
+  - zsh
+  - tmux
+  - neovim
+  - fzf
+  - ripgrep
+  - fd
+  - bat
+  - eza
+  - zoxide
+  - jq
+  - unzip
+  - curl
+  - starship
+
+# .zshrc uses oh-my-zsh + powerlevel10k when ~/.oh-my-zsh exists, starship
+# otherwise. Profiles pick with `zsh_prompt: p10k | starship`.
+#
+# Repo packages on CachyOS, AUR elsewhere — installed through yay so both work.
+p10k_arch_yay:
+  - oh-my-zsh-git
+  - zsh-theme-powerlevel10k
+  - zsh-autosuggestions
+  - zsh-syntax-highlighting
+
+# Same tooling on Ubuntu. neovim and fzf come from GitHub releases instead
+# (apt's are too old for this nvim config and `fzf --zsh`).
+cli_ubuntu:
+  - build-essential
+  - git
+  - stow
+  - zsh
+  - tmux
+  - ripgrep
+  - fd-find
+  - bat
+  - zoxide
+  - jq
+  - unzip
+  - curl
+
+# Hyprland desktop shared by desktop + laptop.
+hyprland_arch:
+  - hyprland
+  - hyprpaper
+  - hypridle
+  - hyprlock
+  - hyprshot
+  - hyprshutdown
+  - quickshell
+  - mako
+  - swayosd
+  - rofi
+  - rofimoji
+  - alacritty
+  - firefox
+  - dolphin
+  - pavucontrol
+  - playerctl
+  - brightnessctl
+  - wireplumber
+  - libpulse          # pactl, used by the quickshell volume widget
+  - networkmanager    # nmcli, used by the quickshell network widget
+  - upower            # quickshell battery widget
+  - polkit-kde-agent
+  - plasma-integration  # QT_QPA_PLATFORMTHEME=kde
+  - breeze
+  - aichat
+  - ttf-fira-sans
+  - ttf-meslo-nerd
+  - noto-fonts-emoji

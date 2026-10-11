@@ -18,7 +18,8 @@ end
 -- Called once from hyprland.lua. Kept out of module load so host files can
 -- require this module for the names/helpers without re-adding the rules.
 function M.setup()
-    hl.monitor({ output = M.left,    mode = "preferred", position = "0x0",    scale = 1 })
+    -- GL2480 tops out at 75Hz but advertises 60Hz as preferred.
+    hl.monitor({ output = M.left,    mode = "1920x1080@75", position = "0x0",    scale = 1 })
     hl.monitor({ output = M.primary, mode = "preferred", position = "1920x0", scale = 1 })
 
     -- Anything else (other docks, projectors) goes on the right.

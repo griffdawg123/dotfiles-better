@@ -142,17 +142,26 @@ export BEMOJI_PICKER_CMD="$(which fuzzel) -d"
 # Oh My Zsh setup (if available)
 if [[ -d "$HOME/.oh-my-zsh" ]]; then
   export ZSH="$HOME/.oh-my-zsh"
-  ZSH_THEME="powerlevel10k/powerlevel10k"
   ZSH_DISABLE_COMPFIX=true  # Skip slow compaudit on startup
 
-  # Add to existing plugins or create array
-  if [[ -z "${plugins[*]}" ]]; then
-    plugins=(git)
+  # powerlevel10k: a git clone lives in Oh My Zsh's custom themes (Ubuntu);
+  # the Arch package installs to /usr/share instead, where Oh My Zsh can't
+  # find it, so that one is sourced directly after Oh My Zsh loads.
+  _p10k_system=/usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+  if [[ -r ${ZSH_CUSTOM:-$ZSH/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme ]]; then
+    ZSH_THEME="powerlevel10k/powerlevel10k"
+  else
+    ZSH_THEME=""
   fi
-  [[ "${plugins[*]}" =~ "zsh-autosuggestions" ]] || plugins+=(zsh-autosuggestions)
-  [[ "${plugins[*]}" =~ "zsh-syntax-highlighting" ]] || plugins+=(zsh-syntax-highlighting)
+
+  # Autosuggestions/highlighting are loaded below with the completion setup,
+  # wherever they're installed.
+  [[ -n "${plugins[*]}" ]] || plugins=(git)
 
   source $ZSH/oh-my-zsh.sh
+
+  [[ -z $ZSH_THEME && -r $_p10k_system ]] && source $_p10k_system
+  unset _p10k_system
 
   # Load P10k configuration from dotfiles
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -186,7 +195,8 @@ zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 # Source a plugin from the Arch package, Ubuntu package or a git clone.
 _load_zsh_plugin() {
   local dir
-  for dir in /usr/share/zsh/plugins/$1 /usr/share/$1 ~/.local/share/zsh/plugins/$1; do
+  for dir in /usr/share/zsh/plugins/$1 /usr/share/$1 ~/.local/share/zsh/plugins/$1 \
+             ${ZSH_CUSTOM:-${ZSH:-/nonexistent}/custom}/plugins/$1; do
     if [[ -r $dir/$1.zsh ]]; then
       source "$dir/$1.zsh"
       return

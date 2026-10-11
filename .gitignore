@@ -1,1 +1,4 @@
 envs.lua
+
+# Per-machine link created by ansible: hypr/.config/hypr/host -> hosts/<profile>
+hypr/.config/hypr/host

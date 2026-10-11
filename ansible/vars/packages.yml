@@ -18,6 +18,11 @@ cli_arch:
   - unzip
   - curl
   - starship
+  # fish-style autosuggestions, highlighting, completions, history search
+  - zsh-autosuggestions
+  - zsh-syntax-highlighting
+  - zsh-completions
+  - zsh-history-substring-search
 
 # .zshrc uses oh-my-zsh + powerlevel10k when ~/.oh-my-zsh exists, starship
 # otherwise. Profiles pick with `zsh_prompt: p10k | starship`.
@@ -26,8 +31,6 @@ cli_arch:
 p10k_arch_yay:
   - oh-my-zsh-git
   - zsh-theme-powerlevel10k
-  - zsh-autosuggestions
-  - zsh-syntax-highlighting
 
 # Same tooling on Ubuntu. neovim and fzf come from GitHub releases instead
 # (apt's are too old for this nvim config and `fzf --zsh`).
@@ -36,6 +39,8 @@ cli_ubuntu:
   - git
   - stow
   - zsh
+  - zsh-autosuggestions
+  - zsh-syntax-highlighting
   - tmux
   - ripgrep
   - fd-find

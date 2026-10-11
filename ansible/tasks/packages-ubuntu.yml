@@ -78,6 +78,16 @@
         dest: "{{ ansible_facts.env.HOME }}/.fzf/bin"
         remote_src: true
 
+# --- zsh plugins apt doesn't carry; .zshrc looks in ~/.local/share/zsh/plugins ---
+
+- name: Clone zsh-completions and zsh-history-substring-search
+  ansible.builtin.git:
+    repo: "https://github.com/zsh-users/{{ item }}.git"
+    dest: "{{ ansible_facts.env.HOME }}/.local/share/zsh/plugins/{{ item }}"
+    depth: 1
+    update: false
+  loop: [zsh-completions, zsh-history-substring-search]
+
 # --- prompt: starship release, or oh-my-zsh + powerlevel10k ---
 
 - name: Install starship release

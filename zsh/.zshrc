@@ -157,15 +157,60 @@ if [[ -d "$HOME/.oh-my-zsh" ]]; then
   # Load P10k configuration from dotfiles
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-  # Enhanced auto-suggestions (muted)
-  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240,italic'
-  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-  bindkey '^ ' autosuggest-accept  # Ctrl+Space
-
 else
   # Fallback to starship if no Oh My Zsh
   eval "$(starship init zsh)"
 fi
+
+
+# === COMPLETION (fish-style, with or without Oh My Zsh) ===
+# Oh My Zsh runs compinit and loads its plugins itself; everything below
+# fills in whatever it didn't, so starship-only machines get the same.
+
+if [[ -z $ZSH ]]; then
+  # Extra completion definitions from a git-cloned zsh-completions (Ubuntu);
+  # the Arch package already installs into site-functions.
+  fpath=(~/.local/share/zsh/plugins/zsh-completions/src(N-/) $fpath)
+  autoload -Uz compinit
+  compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zcompdump"
+fi
+
+zstyle ':completion:*' menu select                       # arrow-key menu on Tab
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%F{109}-- %d --%f'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+
+# Source a plugin from the Arch package, Ubuntu package or a git clone.
+_load_zsh_plugin() {
+  local dir
+  for dir in /usr/share/zsh/plugins/$1 /usr/share/$1 ~/.local/share/zsh/plugins/$1; do
+    if [[ -r $dir/$1.zsh ]]; then
+      source "$dir/$1.zsh"
+      return
+    fi
+  done
+}
+
+# Grey inline suggestion as you type; → or End accepts, Ctrl+Space too.
+(( $+functions[_zsh_autosuggest_start] )) || _load_zsh_plugin zsh-autosuggestions
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240,italic'
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+bindkey '^ ' autosuggest-accept
+
+# Colour commands as you type (valid/invalid). Must load after other widgets.
+[[ -n $ZSH_HIGHLIGHT_VERSION ]] || _load_zsh_plugin zsh-syntax-highlighting
+
+# Up/Down search history for what's already typed.
+_load_zsh_plugin zsh-history-substring-search
+if (( $+functions[history-substring-search-up] )); then
+  bindkey '^[[A' history-substring-search-up
+  bindkey '^[[B' history-substring-search-down
+fi
+
+unfunction _load_zsh_plugin
 
 
 # Added by Antigravity CLI installer

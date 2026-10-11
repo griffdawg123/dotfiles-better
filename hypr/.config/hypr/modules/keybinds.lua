@@ -3,6 +3,7 @@
 --   SUPER + hjkl/arrows               move focus (crosses monitors at the edge)
 --   SUPER + CTRL + hjkl/arrows        move window
 --   SUPER + CTRL + SHIFT + hjkl/arrows resize window
+--   SUPER + SHIFT + h/l, left/right   move window to previous/next workspace
 --   SUPER + 0-9                       go to workspace (SHIFT: take window,
 --                                     CTRL: send window and stay)
 
@@ -110,8 +111,8 @@ bind(mod .. " + mouse:273", dsp.window.resize(), "Resize window", { mouse = true
 
 local STEP = 15
 local dirs = {
-    { arrow = "left",  vim = "h", dir = "left",  dx = -STEP, dy = 0 },
-    { arrow = "right", vim = "l", dir = "right", dx =  STEP, dy = 0 },
+    { arrow = "left",  vim = "h", dir = "left",  dx = -STEP, dy = 0,     ws = "-1" },
+    { arrow = "right", vim = "l", dir = "right", dx =  STEP, dy = 0,     ws = "+1" },
     { arrow = "up",    vim = "k", dir = "up",    dx = 0,     dy = -STEP },
     { arrow = "down",  vim = "j", dir = "down",  dx = 0,     dy =  STEP },
 }
@@ -123,6 +124,12 @@ for _, d in ipairs(dirs) do
         bind(mod .. " + " .. key,                dsp.focus({ direction = d.dir }),       "Focus " .. d.dir)
         bind(mod .. " + CTRL + " .. key,         dsp.window.move({ direction = d.dir }), "Move window " .. d.dir)
         bind(mod .. " + CTRL + SHIFT + " .. key, resize, "Resize " .. d.dir, { repeating = true })
+
+        -- Left/right also carry the window to the previous/next workspace.
+        if d.ws then
+            bind(mod .. " + SHIFT + " .. key, dsp.window.move({ workspace = d.ws, follow = true }),
+                 "Move window to " .. (d.ws == "-1" and "previous" or "next") .. " workspace")
+        end
     end
 end
 

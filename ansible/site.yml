@@ -23,6 +23,7 @@
     - name: sudo_password
       prompt: "sudo password"
       private: true
+      unsafe: true   # pass it through verbatim; `{` or `%` would otherwise be templated
 
   pre_tasks:
     - name: Pick the profile for this host

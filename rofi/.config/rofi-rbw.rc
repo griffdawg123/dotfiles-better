@@ -1,0 +1,4 @@
+selector = rofi
+typer = wtype
+selector-args = -theme ~/.config/rofi/password/zen.rasi
+prompt = 

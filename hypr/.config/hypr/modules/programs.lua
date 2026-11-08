@@ -14,7 +14,7 @@ return {
 	volume = "pavucontrol",
 	bluetooth = "alacritty --class bluetuith -e bluetuith",
 	bar = "quickshell",
-	password_manager = "rofi-rbw --typer wtype",
+	password_manager = "rofi-rbw", -- theme and typer: ~/.config/rofi-rbw.rc
 
 	shot_region = "hyprshot -m region --clipboard-only",
 	shot_window = "hyprshot -m window --clipboard-only",

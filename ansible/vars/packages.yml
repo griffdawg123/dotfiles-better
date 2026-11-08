@@ -25,6 +25,7 @@ cli_arch:
   - zsh-history-substring-search
   - rbw
   - rofi-rbw
+  - wtype
 
 # .zshrc uses oh-my-zsh + powerlevel10k when ~/.oh-my-zsh exists, starship
 # otherwise. Profiles pick with `zsh_prompt: p10k | starship`.

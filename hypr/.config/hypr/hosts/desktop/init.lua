@@ -7,4 +7,5 @@ hl.config({
 
 hl.on("hyprland.start", function()
     hl.exec_cmd("nm-applet --indicator")
+    hl.exec_cmd("opendeck --hide")       -- Stream Deck; window stays in the tray
 end)

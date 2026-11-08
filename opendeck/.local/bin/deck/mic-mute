@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Toggle the default mic (with the swayosd popup) and print its new state
+# for the key title.
+swayosd-client --input-volume mute-toggle
+sleep 0.1
+if wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep -q MUTED; then
+    echo "Mic off"
+else
+    echo "Mic on"
+fi

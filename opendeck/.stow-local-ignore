@@ -1,0 +1,5 @@
+# OpenDeck only serves images whose real path is inside ~/.config/opendeck,
+# so icons are copied there by ansible instead of being stowed as links.
+# (This file replaces stow's default ignore list, so README is repeated.)
+^/README.*
+^/icons

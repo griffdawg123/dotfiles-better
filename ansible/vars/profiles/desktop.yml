@@ -1,7 +1,7 @@
 os_family: arch
 zsh_prompt: p10k
 
-arch_packages: "{{ cli_arch + hyprland_arch + ['network-manager-applet'] }}"
+arch_packages: "{{ cli_arch + hyprland_arch + ['network-manager-applet', 'opendeck', 'hyprpicker'] }}"
 yay_packages: "{{ p10k_arch_yay }}"
 
 stow_packages:
@@ -16,3 +16,4 @@ stow_packages:
   - rofi
   - quickshell
   - hypr
+  - opendeck

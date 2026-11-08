@@ -9,6 +9,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("mako")
     hl.exec_cmd("swayosd-server")
     hl.exec_cmd("hypridle")
+    hl.exec_cmd("playerctld daemon")    -- media keys follow the last-used player
     hl.exec_cmd("/usr/lib/polkit-kde-authentication-agent-1")
 
     -- Start on the main screen when docked; a no-op if it isn't connected.

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Focus the most recently used window whose class matches $1 (a regex),
+# otherwise launch the rest of the arguments.
+#   launch '[Ss]potify' spotify-launcher
+set -euo pipefail
+
+class=$1
+shift
+
+addr=$(hyprctl clients -j | jq -r --arg c "$class" '
+    [.[] | select(.class | test("^(" + $c + ")$"))]
+    | sort_by(.focusHistoryID) | .[0].address // empty')
+
+if [[ -n $addr ]]; then
+    hyprctl eval "hl.dispatch(hl.dsp.focus({ window = \"address:$addr\" }))" >/dev/null
+else
+    exec "$(dirname "$0")/exec" "$@"
+fi

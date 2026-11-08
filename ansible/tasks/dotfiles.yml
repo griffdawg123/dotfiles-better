@@ -20,3 +20,12 @@
   check_mode: false
   environment:
     STOW_DRY_RUN: "{{ '1' if ansible_check_mode else '' }}"
+
+# OpenDeck refuses to serve images through symlinks that leave its config
+# dir, so the Stream Deck icons are real copies rather than stowed links.
+- name: Copy Stream Deck icons
+  ansible.builtin.copy:
+    src: "{{ dotfiles_dir }}/opendeck/icons/"
+    dest: "{{ ansible_facts.env.HOME }}/.config/opendeck/deck-icons/"
+    mode: "0644"
+  when: "'opendeck' in stow_packages"

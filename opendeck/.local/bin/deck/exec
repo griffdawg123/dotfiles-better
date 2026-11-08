@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Run a command through Hyprland so it's detached from OpenDeck, whose
+# Run Command action otherwise waits for the program to exit.
+exec hyprctl eval "hl.dispatch(hl.dsp.exec_cmd([==[$*]==]))" >/dev/null
